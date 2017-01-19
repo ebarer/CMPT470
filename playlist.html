@@ -1,0 +1,98 @@
+<!-- Elliot Barer, ebarer [at] mac [dot] com, 2017-01-05 -->
+<!DOCTYPE html>
+
+<html lang="en">
+    <head>
+        <title>Exercise 2</title>
+
+        <meta charset="UTF-8">
+    	<meta name="viewport" content="initial-scale = 1.0, maximum-scale = 1.0">
+    	
+        <!-- Bootstrap core CSS -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+        <link rel="stylesheet" href="playlist.css">
+    </head>
+
+    <body>
+        <nav>
+            <div class="inset">
+                <ul>
+                    <li class="" id="tab-library">
+                        <a href="#">
+                            <span class="glyphicon glyphicon-music" aria-hidden="true"></span>
+                            <p>Library</p>
+                        </a>
+                    </li>
+                    <li class="active" id="tab-playlists">
+                        <a href="#">
+                            <span class="glyphicon glyphicon-th-list" aria-hidden="true"></span>
+                            <p>Playlists</p>
+                        </a>
+                    </li>
+                    <li class="" id="tab-search">
+                        <a href="#">
+                            <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
+                            <p>Search</p>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+        
+        <div class="container list view" id="library">
+            <div class="list-header">
+                <button class="list_button half active" id="sort-artist">Sort by Artist</button>
+                <button class="list_button half" id="sort-title">Sort by Title</button>
+            </div>
+
+            <ul></ul>
+        </div>
+        
+        <div class="navigation-controller view" id="playlists">
+            <div class="navigation-animator">
+                <div class="container list first">
+                    <div class="list-header">
+                        <button class="list_button" id="add-playlist">
+                            <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+                            Playlist
+                        </button>
+                    </div>
+        
+                    <ul></ul>
+                </div>
+                
+                <div class="container list second" id="playlist-view">
+                    <div class="list-header">
+                        <h1 class="view-title" id="playlist-name">Choose playlist</h1>
+                    </div>
+        
+                    <ul class="playlist-song-list"></ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="container list view" id="search">
+            <div class="list-header">
+                <form>
+                    <input name="search" type="text" placeholder="Search">
+                    <input type="submit" value="submit">
+                </form>
+            </div>
+            
+            <ul></ul>
+        </div>
+        
+        <div class="overlay">
+            <div class="overlay-form" id="add-song-form">
+                <div class="form-header">
+                    <h2>Choose playlist</h2>
+                    <span class="glyphicon glyphicon-remove" id="form-close" aria-hidden="true"></span>
+                </div>
+                <ul></ul>
+            </div>
+        </div>
+
+		<script type="text/javascript" src="music-app.js"></script>
+		<script type="text/javascript" src="music-data.js"></script>
+    </body>
+</html>

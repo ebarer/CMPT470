@@ -1,0 +1,399 @@
+/* Elliot Barer, ebarer [at] mac [dot] com, 2017-01-05 */
+
+
+/* RESETS */
+html, body, div, span, object,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, code, em, font, img, strong, var, ul, ol, dl, li,
+fieldset, form, label, caption,
+table, tbody, tfoot, thead, tr, th, td { background: transparent; margin: 0; padding: 0; border: 0; outline: 0; }
+
+ol, ul 	    { list-style: none; }
+:focus      { outline: 0; }
+table       { border-collapse: collapse; border-spacing: 0; }
+
+
+/* BASIC */
+div 	    { display: block; }
+.left 	    { float: left; }
+.right 	    { float: right; }
+.clear 	    { clear: both; }
+
+/* FONTS */
+a, a:hover  { text-decoration: none; }
+
+
+/* TEMPLATE */
+#template {
+    background: url(playlist-mock.png);
+    background-size: 100% 100%;
+    height: 667px; width: 375px;
+    position: absolute;
+    top: 0; left: 0;
+    z-index: 100;
+    opacity: 0;
+    opacity: 0;
+}
+
+
+/* MAIN */
+html {
+    height: 100%;
+    width: 100%;
+}
+
+body {
+    background: #E8E0F4;
+    height: 100%;
+    width: 100%;
+    color: white;
+    font-family: Helvetica;
+    position: relative;
+    -webkit-font-smoothing: antialiased;
+}
+body.preventScroll {
+    overflow: hidden;
+}
+
+    /* NAVIGATION */
+    nav {
+        background: #F9F9F9;
+        height: 50px;
+        width: 100%;
+        border-bottom: 1px solid #B9B3C3;
+        position: fixed;
+        z-index: 10;
+    }
+    
+    nav .inset {
+        width: 325px;
+        margin: 0 auto;
+        padding: 0;
+    }
+    
+    nav li a {
+        width: 33.33%;
+        float: left;
+        display: block;
+        padding: 6px 3px 0;
+        text-align: center;
+        font-size: 11px;
+        cursor: pointer;
+    }
+    
+    nav li a:active {
+        background: #eee;
+    }
+    
+    nav li a .glyphicon {
+        font-size: 23px;
+        color: #333333;
+    }
+    
+    nav li.active a .glyphicon {
+        color: #810082;
+    }
+    
+    nav li a p {
+        color: #8C8C8C;
+    }
+    
+    nav li.active a p {
+        color: #810082;
+    }
+
+
+/* BODY */
+.navigation-controller {
+    height: 100%;
+    width: auto;
+}
+
+.navigation-animator {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    left: -0%;
+    transition: 0.3s ease-in-out;
+}
+
+.container {
+    box-sizing: border-box;
+    width: 100%;
+    height: 100%;
+}
+
+
+/* VIEWS */
+.view {
+    display: none;
+}
+.view.active {
+    display: block;
+}
+
+
+/* LISTS */
+.list {
+    padding: 50px 10px 0; 
+    position: relative;
+    overflow: scroll;
+}
+
+.navigation-controller .list {
+    position: absolute;
+}
+.navigation-controller .list.first {
+    left: 0%;
+}
+.navigation-controller .list.second {
+    left: 100%;
+}
+
+.list .list-header {
+    overflow: hidden;
+    margin: 0 auto;
+    width: 50%;
+}
+
+.list .list-header h1 {
+    color: #845599;
+    font: 24px/36px Helvetica;
+    margin: 10px 8px;
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+    /* LIST CONTROLS */
+    .list button {
+        background: #936AC7;
+        border-radius: 5px;
+        border: none;
+        height: 30px;
+        width: 100%;
+        margin: 8px 0;
+        padding: 0;
+        float: left;
+        cursor: pointer;
+    }
+    .list button:active {
+        background: #7c55af;
+    }
+    .list button.active {
+        background: #7c55af;
+        box-shadow: inset 0 2px 3px 0 rgba(0, 0, 0, 0.5);
+    }
+    .list button.half {
+        width: 49%;
+        margin-right: 2%;
+    }
+    .list button.half:last-of-type {
+        margin-right: 0;
+    }
+    
+    .list form input[name="search"] {
+        background: #DCD9DF;
+        color: #747272;
+        border-radius: 4px;
+        border: 1px solid #979797;
+        width: 100%;
+        margin: 8px 0;
+        padding: 4px 8px;
+    }
+    
+    .list form input[type="submit"] {
+        display: none;
+    }
+    
+
+    /* ROWS */
+    .list ul {
+        clear: both;
+        margin: 0;
+    }
+
+    .list li.row {
+        height: auto;
+        width: 33.333%;
+        float: left;
+        margin: 0;
+    }
+    
+    .list li.row .row-container {
+        background: #D1C6E2;
+        border-radius: 5px;
+        padding: 10px;
+        margin: 5px;
+        overflow: hidden;
+        clear: both;
+    }
+    
+    .list li.row.playlist {
+        cursor: pointer;
+    }
+    .list li.row.playlist .row-container:active {
+        background: #BAADCF;
+    }
+    
+    .list li.row:last-of-type {
+        border-bottom: none;
+    }
+    
+    .list li.row .row-artwork {
+        background: url('img/song.jpg') no-repeat;
+        background-size: 100% 100%;
+
+        border: 1px solid #979797;
+        height: 45px;
+        width: 45px;
+        margin-right: 20px;
+        float: left;
+    }
+    .list li.row.playlist .row-artwork {
+        background: url('img/playlist.jpg') no-repeat;
+        background-size: 100% 100%;
+    }
+    
+    .list li.row .row-title {
+        font-size: 15px;
+        text-align: left;
+        color: #835797;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .list li.row.playlist .row-title {
+        margin-top: 14px;
+    }
+    .list li.row.song .row-title {
+        margin-top: 8px;
+    }
+    
+    .list li.row.song .row-subtitle {
+        font-size: 11px;
+        text-align: left;
+        color: #666;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .list li.row .glyphicon {
+        color: #808080;
+        font-size: 23px;
+        margin: 10px 0 0 7px;
+        float: right;
+        cursor: pointer;
+    }
+
+    .list li.row.song .glyphicon:hover,    
+    .list li.row.song .glyphicon:active {
+        color: #666666;
+    }
+
+    
+/* POPOVER */
+.overlay {
+    background-color: rgba(128, 128, 128, 0.7);
+    -webkit-backdrop-filter: saturate(200%) blur(5px);
+    backdrop-filter: saturate(200%) blur(5px);
+    display: none;
+    position: absolute;
+    top: 50px; left: 0;
+    z-index: 5;
+    width: 100%;
+    height: 100%;
+}
+.overlay.active {
+    display: block;
+}
+
+.overlay .overlay-form {
+    background: #CFC4DF;
+    color: #6C6A6A;
+    display: none;
+    height: 40%;
+    width: 50%;
+    margin: 100px auto;
+    padding: 25px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
+}
+.overlay .overlay-form.active {
+    display: block;
+}
+
+    /* FORM HEADER */
+    .overlay .overlay-form .form-header {
+        overflow: auto;
+        clear: both;
+        margin-bottom: 15px;
+    }
+    
+    .overlay .overlay-form .form-header h2 {
+        font-size: 18px;
+        float: left;
+    }
+    
+    .overlay .overlay-form .form-header span#form-close {
+        font-size: 18px;
+        color: #7C7C7C;
+        float: right;
+        cursor: pointer;
+    }
+    .overlay .overlay-form .form-header span#form-close:hover {
+        color: #6C6A6A;
+    }
+
+.overlay .overlay-form ul {
+    height: 85%;
+    overflow: scroll;
+}
+
+.overlay .overlay-form ul li a {
+    color: #845599;
+    font-size: 16px;
+    line-height: 35px;
+    cursor: pointer;
+}
+
+.overlay .overlay-form ul li a:hover {
+    color: #5e3473;
+}
+
+
+@media only screen and (max-width: 800px) {
+    .list li.row {
+        width: 50%;
+    }
+}
+
+@media only screen and (max-width: 640px) {
+    .overlay .overlay-form {
+        width: 75%;    
+    }
+}
+
+@media only screen and (max-width: 500px) {
+    .list .list-header {
+        width: 100%;
+    }   
+     
+    .list .list-header h1 {
+        text-align: left;
+    }
+    
+    .list li.row {
+        width: 100%;
+        float: none;
+    }
+
+    .list li.row .row-container {
+        background: none;
+        padding: 13px;
+        margin: 0;
+        border-radius: 0;
+        border-bottom: 1px solid #979797;
+    }
+
+}
