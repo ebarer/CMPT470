@@ -135,7 +135,7 @@ body.preventScroll {
 
 /* LISTS */
 .list {
-    padding: 50px 10px 0; 
+    padding: 50px 10px 10px; 
     position: relative;
     overflow: scroll;
 }

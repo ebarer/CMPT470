@@ -7,6 +7,7 @@
 var playlists = [];
 var songs = [];
 var currentPage;
+var currentPlaylist;
 var currentSong;
 
 
@@ -100,9 +101,9 @@ document.querySelectorAll('#search form')[0].addEventListener('submit', function
 var loadLibrary = function() {
     document.getElementById('tab-library').classList.add('active');
     document.getElementById('library').classList.add('active');
-    document.querySelectorAll('#library ul')[0].innerHTML = '';
 
     var list = document.querySelectorAll('#library ul')[0];
+    list.innerHTML = '';
     for (var i = 0; i < songs.length; i++) {
         createSong(songs[i], list);
     }
@@ -111,9 +112,9 @@ var loadLibrary = function() {
 var loadPlaylists = function() {
     document.getElementById('tab-playlists').classList.add('active');
     document.getElementById('playlists').classList.add('active');
-    document.querySelectorAll('#playlists ul')[0].innerHTML = '';
 
     var list = document.querySelectorAll('#playlists ul')[0];
+    list.innerHTML = '';
     for (var i = 0; i < playlists.length; i++) {
         createPlaylist(playlists[i], list);
     }
@@ -160,9 +161,14 @@ var loadAddSongForm = function() {
     }
 }
 
-var addToPlaylist = function(currentPlaylist) {
+var addToPlaylist = function(selectedPlaylist) {
     return function() {
-        currentPlaylist.songs.push(currentSong.id)
+        selectedPlaylist.songs.push(currentSong.id)
+        
+        if (currentPage == "playlists" && currentPlaylist === selectedPlaylist) {
+            loadPlaylist(selectedPlaylist);
+        }
+        
         hideForm();
     }
 }
@@ -173,21 +179,10 @@ var addToPlaylist = function(currentPlaylist) {
 //////////////////////////////////////////////////
 var navigateToPlaylist = function(playlist) {
     return function() {
+        currentPlaylist = playlist;
+        
         loadPage('playlists');
-
-        var list = document.querySelectorAll('#playlists ul.playlist-song-list')[0];
-        list.innerHTML = '';
-
-        var playlistSongs = songs.filter(function(item){
-            return playlist.songs.indexOf(item.id) > -1
-        });
-
-        for (var i = 0; i < playlist.songs.length; i++) {
-            var song = songs.filter(function(s){
-                return playlist.songs[i] === s.id;
-            });
-            createSong(song[0], list);
-        }
+        loadPlaylist(playlist);
 
         document.getElementById('playlist-name').innerHTML = playlist.name;
 
@@ -195,6 +190,22 @@ var navigateToPlaylist = function(playlist) {
         document.getElementById('playlist-view').scrollTop = 0;
         var animator = document.querySelectorAll('#playlists .navigation-animator')[0];
         animator.style.left = '-100%';
+    }
+}
+
+var loadPlaylist = function(playlist) {
+    var list = document.querySelectorAll('#playlists ul.playlist-song-list')[0];
+    list.innerHTML = '';
+        
+    var playlistSongs = songs.filter(function(item){
+        return playlist.songs.indexOf(item.id) > -1
+    });
+
+    for (var i = 0; i < playlist.songs.length; i++) {
+        var song = songs.filter(function(s){
+            return playlist.songs[i] === s.id;
+        });
+        createSong(song[0], list);
     }
 }
 
