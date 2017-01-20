@@ -221,7 +221,7 @@ body.preventScroll {
     }
     
     .list li.row .row-container {
-        background: #D1C6E2;
+        background: #d9ceef;
         border-radius: 5px;
         padding: 10px;
         margin: 5px;
@@ -233,7 +233,7 @@ body.preventScroll {
         cursor: pointer;
     }
     .list li.row.playlist .row-container:active {
-        background: #BAADCF;
+        background: #D1C6E2;
     }
     
     .list li.row:last-of-type {
@@ -362,6 +362,10 @@ body.preventScroll {
 
 
 @media only screen and (max-width: 800px) {
+    .list .list-header {
+        width: 75%;
+    }
+    
     .list li.row {
         width: 50%;
     }
@@ -376,7 +380,7 @@ body.preventScroll {
 @media only screen and (max-width: 500px) {
     .list .list-header {
         width: 100%;
-    }   
+    }
      
     .list .list-header h1 {
         text-align: left;

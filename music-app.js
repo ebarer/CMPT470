@@ -1,39 +1,32 @@
 /* Elliot Barer, ebarer [at] mac [dot] com, 2017-01-16 */
 
 
-// Global variables
+//////////////////////////////////////////////////
+// Global Variables
+//////////////////////////////////////////////////
 var playlists = [];
 var songs = [];
 var currentPage;
 var currentSong;
 
 
-// Add global listeners
-window.addEventListener('DOMContentLoaded', function() {
+//////////////////////////////////////////////////
+// Load data from JSON
+// Base app methods
+//////////////////////////////////////////////////
+window.addEventListener('DOMContentLoaded', function(){
     makeRequest('music-data.js', loadData);
 });
 
-document.getElementById('tab-library').addEventListener('click', function(){ loadPage('library') }, false);
-document.getElementById('tab-playlists').addEventListener('click', function(){ loadPage('playlists') }, false);
-document.getElementById('tab-search').addEventListener('click', function(){ loadPage('search') }, false);
-
-// Add view-specific listeners
-document.getElementById('sort-artist').addEventListener('click', function(){ sortByArtist() }, false);
-document.getElementById('sort-title').addEventListener('click', function(){ sortByTitle() }, false);
-document.getElementById('search').addEventListener('input', function(){ searchMusic() }, false);
-document.querySelectorAll('#search form')[0].addEventListener('submit', function(event) {
-    event.preventDefault();
-});
-
-
-// Load data from JSON file
 var makeRequest = function(file, callback) {
     var xhr = new XMLHttpRequest();
+    
     xhr.onreadystatechange = function() {
         if (xhr.readyState == XMLHttpRequest.DONE) {
             callback(xhr.responseText);
         }
     }
+    
     xhr.open('GET', file, true);
     xhr.send(null);
 };
@@ -45,7 +38,7 @@ var loadData = function(responseText) {
     loadAddSongForm();
 };
 
-function loadPage(page, callback) {
+var loadPage = function(page, callback) {
     var animators = document.querySelectorAll('.navigation-animator');
     for (var i = 0; i < animators.length; i++) {
         animators[i].style.left = '0';
@@ -75,7 +68,7 @@ function loadPage(page, callback) {
     }
 }
 
-function reset() {
+var reset = function() {
     var nav = document.querySelectorAll('nav li');
     nav.forEach(function(element) {
         element.classList.remove('active');
@@ -88,8 +81,23 @@ function reset() {
 }
 
 
-// Loading functions for each page
-function loadLibrary() {
+//////////////////////////////////////////////////
+// Global and View-Specific Listeners
+//////////////////////////////////////////////////
+document.getElementById('tab-library').addEventListener('click', function(){ loadPage('library') }, false);
+document.getElementById('tab-playlists').addEventListener('click', function(){ loadPage('playlists') }, false);
+document.getElementById('tab-search').addEventListener('click', function(){ loadPage('search') }, false);
+
+document.getElementById('sort-artist').addEventListener('click', sortByArtist, false);
+document.getElementById('sort-title').addEventListener('click', sortByTitle, false);
+document.getElementById('search').addEventListener('input', searchMusic, false);
+document.querySelectorAll('#search form')[0].addEventListener('submit', function(event){ event.preventDefault(); });
+
+
+//////////////////////////////////////////////////
+// Views
+//////////////////////////////////////////////////
+var loadLibrary = function() {
     document.getElementById('tab-library').classList.add('active');
     document.getElementById('library').classList.add('active');
     document.querySelectorAll('#library ul')[0].innerHTML = '';
@@ -100,7 +108,7 @@ function loadLibrary() {
     }
 };
 
-function loadPlaylists() {
+var loadPlaylists = function() {
     document.getElementById('tab-playlists').classList.add('active');
     document.getElementById('playlists').classList.add('active');
     document.querySelectorAll('#playlists ul')[0].innerHTML = '';
@@ -111,31 +119,16 @@ function loadPlaylists() {
     }
 };
 
-function loadSearch() {
+var loadSearch = function() {
     document.getElementById('tab-search').classList.add('active');
     document.getElementById('search').classList.add('active');
-
-    // TODO: Should search results be maintained when switching from tab?
-    //       From a usability perspective, I think it should...
-    document.querySelectorAll('#search ul')[0].innerHTML = '';
 };
 
 
-// Loading functions for overlay forms
-function loadAddSongForm() {
-    var list = document.querySelectorAll('#add-song-form ul')[0];
-    for (var i = 0; i < playlists.length; i++) {
-        var listItem = document.createElement('li');
-        var listItemTitle = document.createElement('a');
-        listItemTitle.innerHTML = playlists[i].name;
-        listItem.appendChild(listItemTitle);
-        list.appendChild(listItem);
-
-        listItem.addEventListener('click', addToPlaylist(playlists[i]), false);
-    }
-}
-
-function displayForm(form) {
+//////////////////////////////////////////////////
+// Overlay forms
+//////////////////////////////////////////////////
+var displayForm = function(form) {
     document.getElementsByTagName('body')[0].classList.add('preventScroll');
     document.getElementsByClassName('overlay')[0].classList.add('active');
     document.getElementById(form).classList.add('active');
@@ -154,6 +147,19 @@ var hideForm = function() {
     activeForm.classList.remove('active');
 }
 
+var loadAddSongForm = function() {
+    var list = document.querySelectorAll('#add-song-form ul')[0];
+    for (var i = 0; i < playlists.length; i++) {
+        var listItem = document.createElement('li');
+        var listItemTitle = document.createElement('a');
+        listItemTitle.innerHTML = playlists[i].name;
+        listItem.appendChild(listItemTitle);
+        list.appendChild(listItem);
+
+        listItem.addEventListener('click', addToPlaylist(playlists[i]), false);
+    }
+}
+
 var addToPlaylist = function(currentPlaylist) {
     return function() {
         currentPlaylist.songs.push(currentSong.id)
@@ -162,7 +168,9 @@ var addToPlaylist = function(currentPlaylist) {
 }
 
 
-// Navigation controller
+//////////////////////////////////////////////////
+// Navigation Controller
+//////////////////////////////////////////////////
 var navigateToPlaylist = function(playlist) {
     return function() {
         loadPage('playlists');
@@ -183,22 +191,20 @@ var navigateToPlaylist = function(playlist) {
 
         document.getElementById('playlist-name').innerHTML = playlist.name;
 
+        // Scroll playlist view to the top, then animate in
+        document.getElementById('playlist-view').scrollTop = 0;
         var animator = document.querySelectorAll('#playlists .navigation-animator')[0];
         animator.style.left = '-100%';
     }
 }
 
 
+//////////////////////////////////////////////////
 // Sorting
-function sortByArtist() {
+//////////////////////////////////////////////////
+function sortByArtist(reload) {
     document.getElementById('sort-title').classList.remove('active');
     document.getElementById('sort-artist').classList.add('active');
-
-/*
-    songs.sort(function(a,b) {
-        return a.artist.toLowerCase().localeCompare(b.artist.toLowerCase());
-    });
-*/
 
     songs.sort(function(a, b) {
         return comparator(a.artist, b.artist)
@@ -211,12 +217,6 @@ function sortByTitle() {
     document.getElementById('sort-title').classList.add('active');
     document.getElementById('sort-artist').classList.remove('active');
 
-/*
-    songs.sort(function(a,b) {
-        return a.title.toLowerCase().localeCompare(b.title.toLowerCase());
-    });
-*/
-
     songs.sort(function(a, b) {
         return comparator(a.title, b.title)
     });
@@ -224,7 +224,8 @@ function sortByTitle() {
     loadLibrary();
 };
 
-// http://stackoverflow.com/questions/34347008/
+// Credit:  http://stackoverflow.com/questions/34347008/
+// Concept, Regular Expression, and "Replacer" taken from the aforementioned URL
 function comparator(a, b) {
     var articles = ['a', 'an', 'the'],
         re = new RegExp('^(?:(' + articles.join('|') + ') )(.*)$'), // e.g. /^(?:(foo|bar) )(.*)$/
@@ -239,8 +240,10 @@ function comparator(a, b) {
 }
 
 
+//////////////////////////////////////////////////
 // Search
-function searchMusic() {
+//////////////////////////////////////////////////
+function searchMusic() {    
     var input = document.querySelector('input[name="search"]');
     var searchString = input.value.toLowerCase();
 
@@ -269,12 +272,11 @@ function searchMusic() {
     }
 }
 
+
 //////////////////////////////////////////////////
 // Generate list items
 //////////////////////////////////////////////////
-
-// Create playlist item
-function createPlaylist(playlist, list) {
+var createPlaylist = function(playlist, list) {
     var newPlaylistLi = document.createElement('li');
     newPlaylistLi.classList.add('row', 'playlist');
 
@@ -301,8 +303,7 @@ function createPlaylist(playlist, list) {
     list.appendChild(newPlaylistLi);
 };
 
-// Create song item
-function createSong(song, list) {
+var createSong = function(song, list) {
     var newSongLi = document.createElement('li');
     newSongLi.classList.add('row', 'song');
 
@@ -340,6 +341,3 @@ function createSong(song, list) {
 
     list.appendChild(newSongLi);
 }
-
-
-
