@@ -6,9 +6,11 @@
 //////////////////////////////////////////////////
 var playlists = [];
 var songs = [];
+var startPage = 'playlists';
 var currentPage;
 var currentPlaylist;
 var currentSong;
+var sortBy = 'artist';
 
 
 //////////////////////////////////////////////////
@@ -16,7 +18,7 @@ var currentSong;
 // Base app methods
 //////////////////////////////////////////////////
 window.addEventListener('DOMContentLoaded', function(){
-    makeRequest('music-data.js', loadData);
+    makeRequest('api/playlists', loadPlaylists);
 });
 
 var makeRequest = function(file, callback) {
@@ -32,10 +34,30 @@ var makeRequest = function(file, callback) {
     xhr.send(null);
 };
 
-var loadData = function(responseText) {
-    playlists = window.MUSIC_DATA.playlists;
-    songs = window.MUSIC_DATA.songs;
-    loadPage('playlists');
+var postRequest = function(url, data) {
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", url, true);
+    xhr.setRequestHeader("Content-type", "application/json");    
+    xhr.send(data);
+}
+
+var loadPlaylists = function(responseText) {
+    playlists = JSON.parse(responseText).playlists;
+    makeRequest('api/songs', loadSongs);
+}
+
+var loadSongs = function(responseText) {
+    songs = JSON.parse(responseText).songs;
+    loadData();
+}
+
+var loadData = function(responseText) {    
+    var path = window.location.pathname;
+    if (path !== '') {
+        startPage = path.substr(1);
+    }
+    
+    loadPage(startPage);
     loadAddSongForm();
 };
 
@@ -51,13 +73,16 @@ var loadPage = function(page, callback) {
 
         switch(currentPage) {
             case 'library':
-                sortByArtist();
+                window.history.pushState({}, "Library", "/library");
+                loadLibraryTab();
                 break;
             case 'playlists':
-                loadPlaylists();
+                window.history.pushState({}, "Playlists", "/playlists");
+                loadPlaylistsTab();
                 break;
             case 'search':
-                loadSearch();
+                window.history.pushState({}, "Search", "/search");
+                loadSearchTab();
                 break;
             default: break;
         }
@@ -85,22 +110,46 @@ var reset = function() {
 //////////////////////////////////////////////////
 // Global and View-Specific Listeners
 //////////////////////////////////////////////////
-document.getElementById('tab-library').addEventListener('click', function(){ loadPage('library') }, false);
-document.getElementById('tab-playlists').addEventListener('click', function(){ loadPage('playlists') }, false);
-document.getElementById('tab-search').addEventListener('click', function(){ loadPage('search') }, false);
+document.getElementById('tab-library').addEventListener('click', function(event){
+    event.preventDefault();
+    loadPage('library')
+}, false);
+document.getElementById('tab-playlists').addEventListener('click', function(event){
+    event.preventDefault();
+    loadPage('playlists')
+}, false);
+document.getElementById('tab-search').addEventListener('click', function(event){
+    event.preventDefault();
+    loadPage('search')
+}, false);
 
-document.getElementById('sort-artist').addEventListener('click', sortByArtist, false);
-document.getElementById('sort-title').addEventListener('click', sortByTitle, false);
+document.getElementById('sort-artist').addEventListener('click', function(){
+    setSortBy('artist');
+    loadLibraryTab();    
+}, false);
+document.getElementById('sort-title').addEventListener('click', function(){
+    setSortBy('title');
+    loadLibraryTab();
+}, false);
 document.getElementById('search').addEventListener('input', searchMusic, false);
-document.querySelectorAll('#search form')[0].addEventListener('submit', function(event){ event.preventDefault(); });
+
+document.querySelectorAll('#search form')[0].addEventListener('submit', function(event){
+    event.preventDefault();
+});
 
 
 //////////////////////////////////////////////////
 // Views
 //////////////////////////////////////////////////
-var loadLibrary = function() {
+var loadLibraryTab = function() {
     document.getElementById('tab-library').classList.add('active');
     document.getElementById('library').classList.add('active');
+
+    if (sortBy === 'title') {
+        sortByTitle();
+    } else {
+        sortByArtist();
+    }
 
     var list = document.querySelectorAll('#library ul')[0];
     list.innerHTML = '';
@@ -109,7 +158,7 @@ var loadLibrary = function() {
     }
 };
 
-var loadPlaylists = function() {
+var loadPlaylistsTab = function() {
     document.getElementById('tab-playlists').classList.add('active');
     document.getElementById('playlists').classList.add('active');
 
@@ -120,7 +169,7 @@ var loadPlaylists = function() {
     }
 };
 
-var loadSearch = function() {
+var loadSearchTab = function() {
     document.getElementById('tab-search').classList.add('active');
     document.getElementById('search').classList.add('active');
 };
@@ -150,6 +199,7 @@ var hideForm = function() {
 
 var loadAddSongForm = function() {
     var list = document.querySelectorAll('#add-song-form ul')[0];
+    list.innerHTML = '';
     for (var i = 0; i < playlists.length; i++) {
         var listItem = document.createElement('li');
         var listItemTitle = document.createElement('a');
@@ -163,7 +213,9 @@ var loadAddSongForm = function() {
 
 var addToPlaylist = function(selectedPlaylist) {
     return function() {
-        selectedPlaylist.songs.push(currentSong.id)
+        selectedPlaylist.songs.push(currentSong.id);
+
+        postRequest('/api/playlists', JSON.stringify({'playlists':playlists}, null, '\t'));
         
         if (currentPage == "playlists" && currentPlaylist === selectedPlaylist) {
             loadPlaylist(selectedPlaylist);
@@ -213,26 +265,26 @@ var loadPlaylist = function(playlist) {
 //////////////////////////////////////////////////
 // Sorting
 //////////////////////////////////////////////////
-function sortByArtist(reload) {
+function setSortBy(sort) {
+    sortBy = sort;
+}
+
+function sortByArtist() {    
     document.getElementById('sort-title').classList.remove('active');
     document.getElementById('sort-artist').classList.add('active');
 
     songs.sort(function(a, b) {
         return comparator(a.artist, b.artist)
     });
-
-    loadLibrary();
 };
 
-function sortByTitle() {
+function sortByTitle() {    
     document.getElementById('sort-title').classList.add('active');
     document.getElementById('sort-artist').classList.remove('active');
 
     songs.sort(function(a, b) {
         return comparator(a.title, b.title)
     });
-
-    loadLibrary();
 };
 
 // Credit:  http://stackoverflow.com/questions/34347008/
@@ -271,12 +323,10 @@ function searchMusic() {
             return (song.title.toLowerCase().includes(searchString)) || (song.artist.toLowerCase().includes(searchString));
         });
 
-
         for (var i = 0; i < matchedPlaylists.length; i++) {
             createPlaylist(matchedPlaylists[i], list);
         }
 
-        console.log(matchedSongs);
         for (var i = 0; i < matchedSongs.length; i++) {
             createSong(matchedSongs[i], list);
         }
