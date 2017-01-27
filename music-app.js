@@ -14,14 +14,40 @@ var sortBy = 'artist';
 
 
 //////////////////////////////////////////////////
-// Load data from JSON
-// Base app methods
+// Global and View-Specific Listeners
 //////////////////////////////////////////////////
-window.addEventListener('DOMContentLoaded', function(){
-    makeRequest('api/playlists', loadPlaylists);
+document.getElementById('tab-library').addEventListener('click', function(event){
+    event.preventDefault();
+    loadPage('library')
+}, false);
+document.getElementById('tab-playlists').addEventListener('click', function(event){
+    event.preventDefault();
+    loadPage('playlists')
+}, false);
+document.getElementById('tab-search').addEventListener('click', function(event){
+    event.preventDefault();
+    loadPage('search')
+}, false);
+
+document.getElementById('sort-artist').addEventListener('click', function(){
+    setSortBy('artist');
+    loadLibraryTab();    
+}, false);
+document.getElementById('sort-title').addEventListener('click', function(){
+    setSortBy('title');
+    loadLibraryTab();
+}, false);
+document.getElementById('search').addEventListener('input', searchMusic, false);
+
+document.querySelectorAll('#search form')[0].addEventListener('submit', function(event){
+    event.preventDefault();
 });
 
-var makeRequest = function(file, callback) {
+
+//////////////////////////////////////////////////
+// POST and GET functions
+//////////////////////////////////////////////////
+var getRequest = function(file, callback) {
     var xhr = new XMLHttpRequest();
     
     xhr.onreadystatechange = function() {
@@ -41,9 +67,18 @@ var postRequest = function(url, data) {
     xhr.send(data);
 }
 
+
+//////////////////////////////////////////////////
+// Load data from JSON
+// Base app methods
+//////////////////////////////////////////////////
+window.addEventListener('DOMContentLoaded', function(){
+    getRequest('api/playlists', loadPlaylists);
+});
+
 var loadPlaylists = function(responseText) {
     playlists = JSON.parse(responseText).playlists;
-    makeRequest('api/songs', loadSongs);
+    getRequest('api/songs', loadSongs);
 }
 
 var loadSongs = function(responseText) {
@@ -105,37 +140,6 @@ var reset = function() {
        view.classList.remove('active');
     });
 }
-
-
-//////////////////////////////////////////////////
-// Global and View-Specific Listeners
-//////////////////////////////////////////////////
-document.getElementById('tab-library').addEventListener('click', function(event){
-    event.preventDefault();
-    loadPage('library')
-}, false);
-document.getElementById('tab-playlists').addEventListener('click', function(event){
-    event.preventDefault();
-    loadPage('playlists')
-}, false);
-document.getElementById('tab-search').addEventListener('click', function(event){
-    event.preventDefault();
-    loadPage('search')
-}, false);
-
-document.getElementById('sort-artist').addEventListener('click', function(){
-    setSortBy('artist');
-    loadLibraryTab();    
-}, false);
-document.getElementById('sort-title').addEventListener('click', function(){
-    setSortBy('title');
-    loadLibraryTab();
-}, false);
-document.getElementById('search').addEventListener('input', searchMusic, false);
-
-document.querySelectorAll('#search form')[0].addEventListener('submit', function(event){
-    event.preventDefault();
-});
 
 
 //////////////////////////////////////////////////
