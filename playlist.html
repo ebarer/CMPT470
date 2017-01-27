@@ -3,7 +3,7 @@
 
 <html lang="en">
     <head>
-        <title>Exercise 2</title>
+        <title>Exercise 3</title>
 
         <meta charset="UTF-8">
     	<meta name="viewport" content="initial-scale = 1.0, maximum-scale = 1.0">
@@ -18,19 +18,19 @@
             <div class="inset">
                 <ul>
                     <li class="" id="tab-library">
-                        <a href="#">
+                        <a href="/library">
                             <span class="glyphicon glyphicon-music" aria-hidden="true"></span>
                             <p>Library</p>
                         </a>
                     </li>
                     <li class="active" id="tab-playlists">
-                        <a href="#">
+                        <a href="/playlists">
                             <span class="glyphicon glyphicon-th-list" aria-hidden="true"></span>
                             <p>Playlists</p>
                         </a>
                     </li>
                     <li class="" id="tab-search">
-                        <a href="#">
+                        <a href="/search">
                             <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
                             <p>Search</p>
                         </a>
@@ -83,10 +83,21 @@
         </div>
         
         <div class="overlay">
+            <div class="overlay-form" id="new-playlist-form">
+                <div class="form-header">
+                    <h2>New Playlist</h2>
+                    <span class="glyphicon glyphicon-remove form-close" aria-hidden="true"></span>
+                </div>
+                <form>
+                    <input name="playlist-name" type="text" placeholder="Playlist Name">
+                    <input type="submit" value="Add">
+                </form>
+            </div>
+            
             <div class="overlay-form" id="add-song-form">
                 <div class="form-header">
                     <h2>Choose playlist</h2>
-                    <span class="glyphicon glyphicon-remove" id="form-close" aria-hidden="true"></span>
+                    <span class="glyphicon glyphicon-remove form-close" aria-hidden="true"></span>
                 </div>
                 <ul></ul>
             </div>

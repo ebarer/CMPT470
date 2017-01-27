@@ -40,6 +40,7 @@ a, a:hover  { text-decoration: none; }
 html {
     height: 100%;
     width: 100%;
+    overflow: hidden;
 }
 
 body {
@@ -49,6 +50,7 @@ body {
     color: white;
     font-family: Helvetica;
     position: relative;
+    overflow: hidden;
     -webkit-font-smoothing: antialiased;
 }
 body.preventScroll {
@@ -195,7 +197,7 @@ body.preventScroll {
     .list form input[name="search"] {
         background: #DCD9DF;
         color: #747272;
-        border-radius: 4px;
+        border-radius: 5px;
         border: 1px solid #979797;
         width: 100%;
         margin: 8px 0;
@@ -334,7 +336,7 @@ body.preventScroll {
         float: left;
     }
     
-    .overlay .overlay-form .form-header span#form-close {
+    .overlay .overlay-form .form-header span.form-close {
         font-size: 18px;
         color: #7C7C7C;
         float: right;
@@ -358,6 +360,31 @@ body.preventScroll {
 
 .overlay .overlay-form ul li a:hover {
     color: #5e3473;
+}
+
+.overlay .overlay-form form input[type="text"] {
+    background: #DCD9DF;
+    color: #747272;
+    border-radius: 5px;
+    border: 1px solid #979797;
+    margin: 8px 0;
+    padding: 4px 8px;
+}
+
+.overlay .overlay-form form input[type="submit"] {
+    background: #936AC7;
+    border-radius: 5px;
+    border: none;
+    padding: 4px 8px;
+    cursor: pointer;
+    color: white;
+}
+
+.overlay .overlay-form form input[type="submit"]:hover {
+    background: #885fbc;
+}
+.overlay .overlay-form form input[type="submit"]:active {
+    background: #7c55af;
 }
 
 

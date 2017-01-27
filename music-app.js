@@ -18,27 +18,34 @@ var sortBy = 'artist';
 //////////////////////////////////////////////////
 document.getElementById('tab-library').addEventListener('click', function(event){
     event.preventDefault();
-    loadPage('library')
-}, false);
+    window.history.pushState('library', event.target.textContent, '/library');
+    loadPage('library');
+});
 document.getElementById('tab-playlists').addEventListener('click', function(event){
     event.preventDefault();
-    loadPage('playlists')
-}, false);
+    window.history.pushState('playlists', event.target.textContent, '/playlists');
+    loadPage('playlists');
+});
 document.getElementById('tab-search').addEventListener('click', function(event){
     event.preventDefault();
-    loadPage('search')
-}, false);
+    window.history.pushState('search', event.target.textContent, '/search');
+    loadPage('search');
+});
 
 document.getElementById('sort-artist').addEventListener('click', function(){
     setSortBy('artist');
     loadLibraryTab();    
-}, false);
+});
 document.getElementById('sort-title').addEventListener('click', function(){
     setSortBy('title');
     loadLibraryTab();
-}, false);
-document.getElementById('search').addEventListener('input', searchMusic, false);
+});
 
+document.getElementById('add-playlist').addEventListener('click', function(){
+    loadNewPlaylistForm();
+});
+    
+document.getElementById('search').addEventListener('input', searchMusic, false);
 document.querySelectorAll('#search form')[0].addEventListener('submit', function(event){
     event.preventDefault();
 });
@@ -73,7 +80,17 @@ var postRequest = function(url, data) {
 // Base app methods
 //////////////////////////////////////////////////
 window.addEventListener('DOMContentLoaded', function(){
+    var path = window.location.pathname;
+    if (path !== '') {
+        startPage = path.substr(1);
+    }
+    
     getRequest('api/playlists', loadPlaylists);
+});
+
+window.addEventListener('popstate', function(event) {
+    console.log(event.state);
+    loadPage(event.state);
 });
 
 var loadPlaylists = function(responseText) {
@@ -86,14 +103,8 @@ var loadSongs = function(responseText) {
     loadData();
 }
 
-var loadData = function(responseText) {    
-    var path = window.location.pathname;
-    if (path !== '') {
-        startPage = path.substr(1);
-    }
-    
+var loadData = function(responseText) {
     loadPage(startPage);
-    loadAddSongForm();
 };
 
 var loadPage = function(page, callback) {
@@ -106,17 +117,16 @@ var loadPage = function(page, callback) {
         currentPage = page;
         reset();
 
+        document.title = 'Exercise 3 - ' + currentPage;
+
         switch(currentPage) {
             case 'library':
-                window.history.pushState({}, "Library", "/library");
                 loadLibraryTab();
                 break;
             case 'playlists':
-                window.history.pushState({}, "Playlists", "/playlists");
                 loadPlaylistsTab();
                 break;
             case 'search':
-                window.history.pushState({}, "Search", "/search");
                 loadSearchTab();
                 break;
             default: break;
@@ -186,21 +196,52 @@ var displayForm = function(form) {
     document.getElementsByTagName('body')[0].classList.add('preventScroll');
     document.getElementsByClassName('overlay')[0].classList.add('active');
     document.getElementById(form).classList.add('active');
-
-    var closeButton = document.getElementById(form).querySelectorAll('#form-close')[0];
-    closeButton.addEventListener('click', hideForm, false);
+    
+    var closeButton = document.getElementById(form).querySelector('.form-close');
+    closeButton.addEventListener('click', hideForm);
 }
 
 var hideForm = function() {
     document.getElementsByTagName('body')[0].classList.remove('preventScroll');
     document.getElementsByClassName('overlay')[0].classList.remove('active');
 
-    var activeForm = document.getElementsByClassName('overlay-form active')[0];
-    var closeButton = activeForm.querySelectorAll('#form-close')[0];
+    var activeOverlay = document.getElementsByClassName('overlay-form active')[0];
+
+    var closeButton = activeOverlay.getElementsByClassName('form-close')[0];
     closeButton.removeEventListener('click', hideForm);
-    activeForm.classList.remove('active');
+    
+    var form = activeOverlay.querySelector('form');
+    if (form !== undefined) {
+        form.removeEventListener('submit', createNewPlaylist);
+    }
+
+    activeOverlay.classList.remove('active');
 }
 
+var loadNewPlaylistForm = function() {
+    var form = document.querySelectorAll('#new-playlist-form form')[0];
+    form.querySelector('input[name="playlist-name"]').value = "";
+    form.addEventListener('submit', createNewPlaylist);
+    
+    displayForm('new-playlist-form');
+}
+
+var createNewPlaylist = function(event){
+    event.preventDefault();
+
+    var form = document.querySelectorAll('#new-playlist-form form')[0];
+    var newPlaylistName = form.querySelector('input[name="playlist-name"]').value;
+    var newPlaylist = {id: playlists.length, name: newPlaylistName, songs: [] }        
+    playlists.push(newPlaylist);
+
+    var list = document.querySelectorAll('#playlists ul')[0];
+    createPlaylist(newPlaylist, list);
+    
+    hideForm();
+    
+    postRequest('/api/playlists', JSON.stringify({'playlists':playlists}, null, '\t'));
+}
+    
 var loadAddSongForm = function() {
     var list = document.querySelectorAll('#add-song-form ul')[0];
     list.innerHTML = '';
@@ -211,8 +252,10 @@ var loadAddSongForm = function() {
         listItem.appendChild(listItemTitle);
         list.appendChild(listItem);
 
-        listItem.addEventListener('click', addToPlaylist(playlists[i]), false);
+        listItem.addEventListener('click', addToPlaylist(playlists[i]));
     }
+    
+    displayForm('add-song-form');
 }
 
 var addToPlaylist = function(selectedPlaylist) {
@@ -363,7 +406,7 @@ var createPlaylist = function(playlist, list) {
     rowContainer.appendChild(symbolChevron);
     rowContainer.appendChild(listTitle);
 
-    newPlaylistLi.addEventListener('click', navigateToPlaylist(playlist), false);
+    newPlaylistLi.addEventListener('click', navigateToPlaylist(playlist));
 
     list.appendChild(newPlaylistLi);
 };
@@ -392,7 +435,7 @@ var createSong = function(song, list) {
 
     symbolAdd.addEventListener('click', function(){
         currentSong = song;
-        displayForm('add-song-form')
+        loadAddSongForm();
     }, false);
 
     var symbolPlay = document.createElement('span');
@@ -406,3 +449,4 @@ var createSong = function(song, list) {
 
     list.appendChild(newSongLi);
 }
+

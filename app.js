@@ -113,14 +113,14 @@ var server = http.createServer(function(request, response){
     else if (method === 'GET' && url === '/') {
         response.statusCode = 301;
         response.setHeader('Content-Type', 'text/html');
-        response.setHeader('Location', 'http://localhost:3000/playlist');
+        response.setHeader('Location', 'http://localhost:3000/playlists');
         response.end();
     }
     
 // OTHER = 404 ERROR
     else {
         response.statusCode = 404;
-        response.setHeader('Content-Type', 'text/plain');
+        response.setHeader('Content-Type', 'text/html');
         response.end('<html><body><h1>404 Error</h1></body></html>');
     }
 });
