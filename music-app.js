@@ -195,6 +195,11 @@ var loadSearchTab = function() {
 var displayForm = function(form) {
     document.getElementsByTagName('body')[0].classList.add('preventScroll');
     document.getElementsByClassName('overlay')[0].classList.add('active');
+    
+    var forms = document.querySelectorAll('.overlay-form');
+    for (var i = 0, item; item = forms[i]; i++) {
+        item.classList.remove('active');
+    }
     document.getElementById(form).classList.add('active');
     
     var closeButton = document.getElementById(form).querySelector('.form-close');
@@ -279,11 +284,12 @@ var addToPlaylist = function(selectedPlaylist) {
 var navigateToPlaylist = function(playlist) {
     return function() {
         currentPlaylist = playlist;
-        
-        loadPage('playlists');
+
         loadPlaylist(playlist);
 
         document.getElementById('playlist-name').innerHTML = playlist.name;
+
+        loadPage('playlists');
 
         // Scroll playlist view to the top, then animate in
         document.getElementById('playlist-view').scrollTop = 0;

@@ -39,47 +39,49 @@
             </div>
         </nav>
         
-        <div class="container list view" id="library">
-            <div class="list-header">
-                <button class="list_button half active" id="sort-artist">Sort by Artist</button>
-                <button class="list_button half" id="sort-title">Sort by Title</button>
-            </div>
-
-            <ul></ul>
-        </div>
-        
-        <div class="navigation-controller view" id="playlists">
-            <div class="navigation-animator">
-                <div class="container list first">
-                    <div class="list-header">
-                        <button class="list_button" id="add-playlist">
-                            <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
-                            Playlist
-                        </button>
-                    </div>
-        
-                    <ul></ul>
+        <div class="container">
+            <div class="view list" id="library">
+                <div class="list-header">
+                    <button class="list_button half active" id="sort-artist">Sort by Artist</button>
+                    <button class="list_button half" id="sort-title">Sort by Title</button>
                 </div>
-                
-                <div class="container list second" id="playlist-view">
-                    <div class="list-header">
-                        <h1 class="view-title" id="playlist-name">Choose playlist</h1>
-                    </div>
-        
-                    <ul class="playlist-song-list"></ul>
-                </div>
-            </div>
-        </div>
-        
-        <div class="container list view" id="search">
-            <div class="list-header">
-                <form>
-                    <input name="search" type="text" placeholder="Search">
-                    <input type="submit" value="submit">
-                </form>
+    
+                <ul></ul>
             </div>
             
-            <ul></ul>
+            <div class="view navigation-controller" id="playlists">
+                <div class="navigation-animator">
+                    <div class="navigation-view list first">
+                        <div class="list-header">
+                            <button class="list_button" id="add-playlist">
+                                <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+                                Playlist
+                            </button>
+                        </div>
+            
+                        <ul></ul>
+                    </div>
+                    
+                    <div class="navigation-view list second" id="playlist-view">
+                        <div class="list-header">
+                            <h1 class="view-title" id="playlist-name">Choose playlist</h1>
+                        </div>
+            
+                        <ul class="playlist-song-list"></ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="view list" id="search">
+                <div class="list-header">
+                    <form>
+                        <input name="search" type="text" placeholder="Search">
+                        <input type="submit" value="submit">
+                    </form>
+                </div>
+                
+                <ul></ul>
+            </div>
         </div>
         
         <div class="overlay">

@@ -106,28 +106,21 @@ body.preventScroll {
 
 
 /* BODY */
-.navigation-controller {
-    height: 100%;
-    width: auto;
-}
-
-.navigation-animator {
-    width: 100%;
-    height: 100%;
-    position: absolute;
-    left: -0%;
-    transition: 0.3s ease-in-out;
-}
-
 .container {
     box-sizing: border-box;
     width: 100%;
     height: 100%;
+    padding: 50px 0 0;
+    margin: 0;
 }
 
 
 /* VIEWS */
 .view {
+    box-sizing: border-box;
+    width: 100%;
+    height: 100%;
+    padding: 10px;
     display: none;
 }
 .view.active {
@@ -135,33 +128,53 @@ body.preventScroll {
 }
 
 
+/* NAVIGATION CONTROLLER */
+.navigation-controller {
+    width: auto;
+    height: 100%;
+    padding: 0;
+    position: relative;
+}
+
+.navigation-animator {
+    box-sizing: border-box;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    left: -0%;
+    transition: 0.3s ease-in-out;
+}
+
+.navigation-controller .navigation-view  {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    padding: 10px;
+}
+.navigation-controller .navigation-view.first {
+    left: 0%;
+}
+.navigation-controller .navigation-view.second {
+    left: 100%;
+}
+
+
 /* LISTS */
 .list {
-    padding: 50px 10px 10px; 
     position: relative;
     overflow: scroll;
 }
 
-.navigation-controller .list {
-    position: absolute;
-}
-.navigation-controller .list.first {
-    left: 0%;
-}
-.navigation-controller .list.second {
-    left: 100%;
-}
-
 .list .list-header {
     overflow: hidden;
-    margin: 0 auto;
-    width: 50%;
+    margin: 0 auto 4px;
+    width: 35%;
 }
 
 .list .list-header h1 {
     color: #845599;
-    font: 24px/36px Helvetica;
-    margin: 10px 8px;
+    font: 24px/30px Helvetica;
+    margin: 0 12px;
     text-align: center;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -174,7 +187,7 @@ body.preventScroll {
         border: none;
         height: 30px;
         width: 100%;
-        margin: 8px 0;
+        margin: 0;
         padding: 0;
         float: left;
         cursor: pointer;
@@ -200,7 +213,7 @@ body.preventScroll {
         border-radius: 5px;
         border: 1px solid #979797;
         width: 100%;
-        margin: 8px 0;
+        margin: 0;
         padding: 4px 8px;
     }
     
@@ -236,10 +249,6 @@ body.preventScroll {
     }
     .list li.row.playlist .row-container:active {
         background: #D1C6E2;
-    }
-    
-    .list li.row:last-of-type {
-        border-bottom: none;
     }
     
     .list li.row .row-artwork {
@@ -424,6 +433,10 @@ body.preventScroll {
         margin: 0;
         border-radius: 0;
         border-bottom: 1px solid #979797;
+    }
+    
+    .list li.row:last-of-type .row-container {
+        border-bottom: none;
     }
 
 }
