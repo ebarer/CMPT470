@@ -1,5 +1,7 @@
 {
   "name": "exercise3",
+  "author": "Elliot Barer <ebarer@mac.com> (301181456)",
+  "license": "UNLICENSED",
   "version": "1.0.0",
   "description": "Adding a backend to Music App",
   "main": "app.js",
@@ -8,5 +10,9 @@
   },
   "dependencies": {
     "sqlite3": "^3.1.8"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/ebarer/CMPT470.git"
   }
 }

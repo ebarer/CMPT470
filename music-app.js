@@ -216,7 +216,7 @@ var hideForm = function() {
     closeButton.removeEventListener('click', hideForm);
     
     var form = activeOverlay.querySelector('form');
-    if (form !== undefined) {
+    if (form !== null) {
         form.removeEventListener('submit', createNewPlaylist);
     }
 
