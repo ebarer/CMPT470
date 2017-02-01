@@ -12,6 +12,7 @@ var db = new sqlite3.Database(file);
 
 db.serialize(function () {
     if (fs.existsSync(file)) {
+        console.log("Databse already exists:")
         getCountSongs();
         getCountPlaylists();
         getCountMerge();
@@ -87,18 +88,18 @@ db.serialize(function () {
 //////////////////////////////////////////////////
 function getCountSongs() {
     db.get('SELECT COUNT(*) FROM songs', function(err, count){
-        console.log("Songs count: " + count['COUNT(*)']);
+        console.log("  Songs: " + count['COUNT(*)']);
     });
 };
 
 function getCountPlaylists() {
     db.get('SELECT COUNT(*) FROM playlists', function(err, count){
-        console.log("Playlists count: " + count['COUNT(*)']);
+        console.log("  Playlists: " + count['COUNT(*)']);
     });
 };
 
 function getCountMerge() {
     db.get('SELECT COUNT(*) FROM songs_playlists', function(err, count){
-        console.log("Merge count: " + count['COUNT(*)']);
+        console.log("  Merges: " + count['COUNT(*)']);
     });
 };
