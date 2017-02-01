@@ -4,8 +4,12 @@
 //////////////////////////////////////////////////
 // Global Variables
 //////////////////////////////////////////////////
-var playlists = [];
+window.MUSIC_DATA = {};
+var songsLoaded = false;
+var playlistsLoaded = false;
 var songs = [];
+var playlists = [];
+
 var startPage = 'playlists';
 var currentPage;
 var currentPlaylist;
@@ -86,6 +90,7 @@ window.addEventListener('DOMContentLoaded', function(){
     }
     
     getRequest('api/playlists', loadPlaylists);
+    getRequest('api/songs', loadSongs);
 });
 
 window.addEventListener('popstate', function(event) {
@@ -94,17 +99,39 @@ window.addEventListener('popstate', function(event) {
 });
 
 var loadPlaylists = function(responseText) {
-    playlists = JSON.parse(responseText).playlists;
-    getRequest('api/songs', loadSongs);
+    console.log(responseText);
+    
+    window.MUSIC_DATA['playlists'] = JSON.parse(responseText).playlists;
+    playlists = window.MUSIC_DATA['playlists'];
+    
+    // Convert songs string to array
+    for (var i = 0, playlist; playlist = playlists[i]; i++) {
+        if (playlist.songs === null) {
+            playlist.songs = [];
+        } else {
+            playlist.songs = playlist.songs.split(',').map(Number);
+        }
+    }
+    
+    playlistsLoaded = true;
+    attemptRunApplication();
 }
 
 var loadSongs = function(responseText) {
-    songs = JSON.parse(responseText).songs;
-    loadData();
+    console.log(responseText);
+    
+    window.MUSIC_DATA['songs'] = JSON.parse(responseText).songs;
+    songs = window.MUSIC_DATA['songs'];
+    
+    songsLoaded = true;
+    attemptRunApplication();
 }
 
-var loadData = function(responseText) {
-    loadPage(startPage);
+var attemptRunApplication = function() {
+    if (songsLoaded == true && playlistsLoaded == true) {
+        document.getElementById('applicationLoader').classList.remove('active');
+        loadPage(startPage);
+    }
 };
 
 var loadPage = function(page, callback) {

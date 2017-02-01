@@ -1,3 +1,6 @@
+/* Elliot Barer, ebarer [at] mac [dot] com, 2017-01-31 */
+
+
 //////////////////////////////////////////////////
 // REQUIREMENTS
 //////////////////////////////////////////////////
@@ -6,7 +9,10 @@ var path = require('path');
 var express = require('express');
 var fs = require('fs');
 var bodyParser = require('body-parser');
+var file = "music.db";
 
+var sqlite3 = require('sqlite3').verbose();
+var db = new sqlite3.Database(file);
 
 //////////////////////////////////////////////////
 // CREATE EXPRESS SERVER
@@ -52,20 +58,29 @@ var loadPage = function(request, response) {
 //////////////////////////////////////////////////
 app.get('/api/songs', function(request, response) {
     response.statusCode = 200;
-    response.setHeader('Content-Type', 'application/json');
+    response.setHeader('Content-Type', 'text/json');
     response.setHeader('Cache-Control', 'max-age=1800');
-    
-    var fPath = path.join(__dirname, 'songs.json');
-    fs.createReadStream(fPath).pipe(response);
+
+    db.all('SELECT * FROM songs', function(err, rows) {
+        response.send(JSON.stringify({'songs' : rows}));
+    });
 });
 
 app.get('/api/playlists', function(request, response) {
     response.statusCode = 200;
-    response.setHeader('Content-Type', 'application/json');
+    response.setHeader('Content-Type', 'text/json');
     response.setHeader('Cache-Control', 'max-age=1800');
     
-    var fPath = path.join(__dirname, 'playlists.json');
-    fs.createReadStream(fPath).pipe(response);
+    // Use group_concat to create an array string of songs
+    // for the playlist, from the results of the merge table
+    var query = "SELECT p.id, p.name, group_concat(song_id) AS songs " +
+                "FROM playlists p " +
+                "LEFT OUTER JOIN songs_playlists m on p.id = m.playlist_id " +
+                "GROUP BY p.id, p.name";
+                
+    db.all(query, function(err, rows) {
+        response.send(JSON.stringify({'playlists' : rows}));
+    });
 });
 
 app.post('/api/playlists', function(request, response) {
@@ -110,23 +125,7 @@ app.get('/playlist.css', function(request, response) {
     fs.createReadStream(fPath).pipe(response);
 });
 
-app.get('/img/playlist.jpg', function(request, response) {
-    response.statusCode = 200;
-    response.setHeader('Content-Type', 'image/jpeg');
-    response.setHeader('Cache-Control', 'max-age=1800');
-
-    var fPath = path.join(__dirname, request.url);
-    fs.createReadStream(fPath).pipe(response);
-});
-
-app.get('/img/song.jpg', function(request, response) {
-    response.statusCode = 200;
-    response.setHeader('Content-Type', 'image/jpeg');
-    response.setHeader('Cache-Control', 'max-age=1800');
-
-    var fPath = path.join(__dirname, request.url);
-    fs.createReadStream(fPath).pipe(response);
-});
+app.use('/img', express.static(__dirname + '/img'));
 
 
 //////////////////////////////////////////////////
