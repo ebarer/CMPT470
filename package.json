@@ -1,9 +1,12 @@
 {
-    "name": "exercise3",
-    "version": "1.0.0",
-    "description": "Adding a backend to Music App",
-    "main": "app.js",
-    "scripts": {
-        "start": "node app.js"
-    }
+  "name": "exercise3",
+  "version": "1.0.0",
+  "description": "Adding a backend to Music App",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "dependencies": {
+    "sqlite3": "^3.1.8"
+  }
 }
