@@ -62,7 +62,7 @@ app.get('/api/songs', function(request, response) {
     response.setHeader('Cache-Control', 'max-age=1800');
 
     db.all('SELECT * FROM songs', function(err, rows) {
-        response.send(JSON.stringify({'songs' : rows}));
+        response.send(JSON.stringify({'songs' : rows}, null, 4));
     });
 });
 
@@ -79,7 +79,7 @@ app.get('/api/playlists', function(request, response) {
                 "GROUP BY p.id, p.name";
                 
     db.all(query, function(err, rows) {
-        response.send(JSON.stringify({'playlists' : rows}));
+        response.send(JSON.stringify({'playlists' : rows}, null, 4));
     });
 });
 

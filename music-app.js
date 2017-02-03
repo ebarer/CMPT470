@@ -94,13 +94,10 @@ window.addEventListener('DOMContentLoaded', function(){
 });
 
 window.addEventListener('popstate', function(event) {
-    console.log(event.state);
     loadPage(event.state);
 });
 
-var loadPlaylists = function(responseText) {
-    console.log(responseText);
-    
+var loadPlaylists = function(responseText) {    
     window.MUSIC_DATA['playlists'] = JSON.parse(responseText).playlists;
     playlists = window.MUSIC_DATA['playlists'];
     
@@ -117,9 +114,7 @@ var loadPlaylists = function(responseText) {
     attemptRunApplication();
 }
 
-var loadSongs = function(responseText) {
-    console.log(responseText);
-    
+var loadSongs = function(responseText) {    
     window.MUSIC_DATA['songs'] = JSON.parse(responseText).songs;
     songs = window.MUSIC_DATA['songs'];
     
@@ -271,7 +266,7 @@ var createNewPlaylist = function(event){
     
     hideForm();
     
-    postRequest('/api/playlists', JSON.stringify({'playlists':playlists}, null, '\t'));
+    postRequest('/api/playlists', JSON.stringify({'playlists':playlists}, null, 4));
 }
     
 var loadAddSongForm = function() {
