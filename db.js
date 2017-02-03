@@ -45,23 +45,29 @@ db.serialize(function () {
         
             // Insert songs into "songs" table
             for (var i = 0, song; song = songs[i]; i++) {
-                db.run('INSERT INTO songs VALUES ($id, $album, $title, $artist, $duration)', {
-                    $id: song.id,
+                db.run('INSERT INTO songs (album, title, artist, duration) VALUES ($album, $title, $artist, $duration)', {
                     $album: song.album,
                     $title: song.title,
                     $artist: song.artist,
                     $duration: song.duration
-                }, function(err, data) {});
+                }, function(err, data) {
+                    if (err !== null) {
+                        console.log(err);
+                    }
+                });
             }
     
             getCountSongs();
             
             // Insert playlists into "playlists" table
             for (var i = 0, playlist; playlist = playlists[i]; i++) {
-                db.run('INSERT INTO playlists VALUES ($id, $name)', {
-                    $id: playlist.id,
+                db.run('INSERT INTO playlists (name) VALUES ($name)', {
                     $name: playlist.name
-                }, function(err, data) {});
+                }, function(err, data) {
+                    if (err !== null) {
+                        console.log(err);
+                    }
+                });
             }
     
             getCountPlaylists();
@@ -70,9 +76,14 @@ db.serialize(function () {
             for (var i = 0, playlist; playlist = playlists[i]; i++) {
                 for (var j = 0, song; song = playlist.songs[j]; j++) {
                     db.run('INSERT INTO songs_playlists (playlist_id, song_id) VALUES ($p, $s)', {
-                        $p: playlist.id,
-                        $s: song
-                    }, function(err, data) {});
+                        // Must use +1 to account for 0 offset in JSON file
+                        $p: playlist.id + 1,
+                        $s: song + 1
+                    }, function(err, data) {
+                        if (err !== null) {
+                            console.log(err);
+                        }
+                    });
                 }
             }
             
