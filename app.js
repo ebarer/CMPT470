@@ -4,15 +4,14 @@
 //////////////////////////////////////////////////
 // REQUIREMENTS
 //////////////////////////////////////////////////
-var http = require('http');
+var fs = require('fs');
 var path = require('path');
 var express = require('express');
-var fs = require('fs');
 var bodyParser = require('body-parser');
-var file = "music.db";
+var Sequelize = require("sequelize");
 
-var sqlite3 = require('sqlite3').verbose();
-var db = new sqlite3.Database(file);
+var models = require('./models');
+
 
 //////////////////////////////////////////////////
 // CREATE EXPRESS SERVER
@@ -60,10 +59,11 @@ app.get('/api/songs', function(request, response) {
     response.statusCode = 200;
     response.setHeader('Content-Type', 'text/json');
     response.setHeader('Cache-Control', 'max-age=1800');
-
-    db.all('SELECT * FROM songs', function(err, rows) {
-        response.send(JSON.stringify({'songs' : rows}, null, 4));
-    });
+    
+    models.Song.findAll()
+        .then(function(songs) {
+            response.end(JSON.stringify({'songs' : songs}, null, 4));
+        });
 });
 
 app.get('/api/playlists', function(request, response) {
@@ -71,21 +71,37 @@ app.get('/api/playlists', function(request, response) {
     response.setHeader('Content-Type', 'text/json');
     response.setHeader('Cache-Control', 'max-age=1800');
     
-    // Use group_concat to create an array string of songs
-    // for the playlist, from the results of the merge table
-    var query = "SELECT p.id, p.name, group_concat(song_id) AS songs " +
-                "FROM playlists p " +
-                "LEFT OUTER JOIN songs_playlists m on p.id = m.playlist_id " +
-                "GROUP BY p.id, p.name";
-                
-    db.all(query, function(err, rows) {
-        response.send(JSON.stringify({'playlists' : rows}, null, 4));
-    });
+    // TODO: More elegant solution for converting list of songs into array of IDs?
+    models.Playlist.findAll({
+            attributes: ['id', 'name'],
+            include: [{
+                model: models.Song,
+                attributes: ['id'],
+                where: { playlist_id: Sequelize.col('playlist.id') },
+                through: {
+                    attributes: []
+                }
+            }]
+        })
+        .then(function(playlists) {            
+            playlists = playlists.map(function(playlist) {
+                return {
+                    'id': playlist.id,
+                    'name': playlist.name,
+                    'songs': playlist.Songs.map(function(song) { return song.id })
+                }
+            });
+            
+            response.end(JSON.stringify({'playlists' : playlists}, null, 4));
+        });
 });
 
 app.post('/api/playlists', function(request, response) {
     var data = JSON.stringify(request.body, null, '\t');
     
+    console.log(data);
+    
+/*
     fs.writeFile('playlists.json', data, function(error) {
         if (error) {
             response.statusCode = 400;
@@ -97,6 +113,7 @@ app.post('/api/playlists', function(request, response) {
         response.setHeader('Content-Type', 'text/plain');
         response.end('Updated file successfully.');
     });
+*/
 });
 
 

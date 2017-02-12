@@ -1,12 +1,10 @@
 {
 	"playlists": [
 		{
-			"id": 0,
+			"id": 1,
 			"name": "90's Mega Mix",
 			"songs": [
 				1,
-				20,
-				20,
 				20,
 				21,
 				56,
@@ -16,11 +14,10 @@
 			]
 		},
 		{
-			"id": 1,
+			"id": 2,
 			"name": "Workout Tracks",
 			"songs": [
 				20,
-				21,
 				21,
 				56,
 				80,
@@ -31,7 +28,7 @@
 			]
 		},
 		{
-			"id": 2,
+			"id": 3,
 			"name": "Daft Punk mix",
 			"songs": [
 				147,
@@ -87,11 +84,19 @@
 			]
 		},
 		{
-			"id": 3,
+			"id": 4,
 			"name": "Elliot's Mix",
 			"songs": [
 				1,
 				20
+			]
+		},
+		{
+			"id": 5,
+			"name": "Test",
+			"songs": [
+				1,
+				1
 			]
 		}
 	]

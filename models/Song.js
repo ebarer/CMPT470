@@ -16,6 +16,19 @@ module.exports = function(sequelize, DataType) {
             type: DataType.INTEGER,
             field: 'duration'
         }
+    }, {
+        classMethods: {
+            associate: function(models) {
+                Song.belongsToMany(models.Playlist, {
+                    through: {
+                        model: models.Songs_Playlists,
+                        unique: false
+                    },
+                    foreignKey: 'song_id',
+                    constraints: false
+                });
+            }
+        }
     });
 
     return Song;

@@ -4,7 +4,6 @@
 //////////////////////////////////////////////////
 // Global Variables
 //////////////////////////////////////////////////
-window.MUSIC_DATA = {};
 var songsLoaded = false;
 var playlistsLoaded = false;
 var songs = [];
@@ -98,26 +97,13 @@ window.addEventListener('popstate', function(event) {
 });
 
 var loadPlaylists = function(responseText) {    
-    window.MUSIC_DATA['playlists'] = JSON.parse(responseText).playlists;
-    playlists = window.MUSIC_DATA['playlists'];
-    
-    // Convert songs string to array
-    for (var i = 0, playlist; playlist = playlists[i]; i++) {
-        if (playlist.songs === null) {
-            playlist.songs = [];
-        } else {
-            playlist.songs = playlist.songs.split(',').map(Number);
-        }
-    }
-    
+    playlists = JSON.parse(responseText).playlists;
     playlistsLoaded = true;
     attemptRunApplication();
 }
 
 var loadSongs = function(responseText) {    
-    window.MUSIC_DATA['songs'] = JSON.parse(responseText).songs;
-    songs = window.MUSIC_DATA['songs'];
-    
+    songs = JSON.parse(responseText).songs;
     songsLoaded = true;
     attemptRunApplication();
 }
