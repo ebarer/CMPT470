@@ -233,10 +233,12 @@ var hideForm = function() {
 
 var loadNewPlaylistForm = function() {
     var form = document.querySelectorAll('#new-playlist-form form')[0];
-    form.querySelector('input[name="playlist-name"]').value = "";
+    var nameInput = form.querySelector('input[name="playlist-name"]');
+    nameInput.value = "";
     form.addEventListener('submit', createNewPlaylist);
     
     displayForm('new-playlist-form');
+    nameInput.focus();
 }
 
 var createNewPlaylist = function(event){
@@ -252,7 +254,7 @@ var createNewPlaylist = function(event){
     
     hideForm();
     
-    postRequest('/api/playlists', JSON.stringify({'playlists':playlists}, null, 4));
+    postRequest('/api/playlists', JSON.stringify({'playlistName': newPlaylistName}, null, 4));
 }
     
 var loadAddSongForm = function() {

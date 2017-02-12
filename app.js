@@ -97,10 +97,30 @@ app.get('/api/playlists', function(request, response) {
 });
 
 app.post('/api/playlists', function(request, response) {
-    var data = JSON.stringify(request.body, null, '\t');
+    var data = request.body;
     
-    console.log(data);
-    
+    if (data.playlistName) {
+        console.log(data.playlistName);
+
+        models.Playlist.create({
+            name: data.playlistName
+        }).then(function(playlistInstance){
+            response.statusCode = 200;
+            response.setHeader('Content-Type', 'text/plain');
+            response.end('Updated file successfully: ' + playlistInstance);
+        }).catch(function(err) {
+            response.statusCode = 400;
+            response.setHeader('Content-Type', 'text/plain');
+            response.end('Error updating file: ' + err);
+        });
+    }    
+    else if (data.playlistID && data.songID) {
+        console.log(data.playlistID + " - " + data.songID);
+    }
+    else {
+        response.end('Updated file successfully.');
+    }
+            
 /*
     fs.writeFile('playlists.json', data, function(error) {
         if (error) {
