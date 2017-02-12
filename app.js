@@ -60,10 +60,11 @@ app.get('/api/songs', function(request, response) {
     response.setHeader('Content-Type', 'text/json');
     response.setHeader('Cache-Control', 'max-age=1800');
     
-    models.Song.findAll()
-        .then(function(songs) {
-            response.end(JSON.stringify({'songs' : songs}, null, 4));
-        });
+    models.Song.findAll({
+        attributes: { exclude: ['createdAt', 'updatedAt'] },
+    }).then(function(songs) {
+        response.end(JSON.stringify({'songs' : songs}, null, 4));
+    });
 });
 
 app.get('/api/playlists', function(request, response) {
@@ -73,27 +74,26 @@ app.get('/api/playlists', function(request, response) {
     
     // TODO: More elegant solution for converting list of songs into array of IDs?
     models.Playlist.findAll({
-            attributes: ['id', 'name'],
-            include: [{
-                model: models.Song,
-                attributes: ['id'],
-                where: { playlist_id: Sequelize.col('playlist.id') },
-                through: {
-                    attributes: []
-                }
-            }]
-        })
-        .then(function(playlists) {            
-            playlists = playlists.map(function(playlist) {
-                return {
-                    'id': playlist.id,
-                    'name': playlist.name,
-                    'songs': playlist.Songs.map(function(song) { return song.id })
-                }
-            });
-            
-            response.end(JSON.stringify({'playlists' : playlists}, null, 4));
+        attributes: ['id', 'name'],
+        include: [{
+            model: models.Song,
+            attributes: ['id'],
+            where: { playlist_id: Sequelize.col('playlist.id') },
+            through: {
+                attributes: []
+            }
+        }]
+    }).then(function(playlists) {            
+        playlists = playlists.map(function(playlist) {
+            return {
+                'id': playlist.id,
+                'name': playlist.name,
+                'songs': playlist.Songs.map(function(song) { return song.id })
+            }
         });
+        
+        response.end(JSON.stringify({'playlists' : playlists}, null, 4));
+    });
 });
 
 app.post('/api/playlists', function(request, response) {
