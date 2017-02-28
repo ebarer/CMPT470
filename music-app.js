@@ -290,7 +290,7 @@ var loadAddSongForm = function() {
     list.innerHTML = '';
     
     for (var i = 0; i < playlists.length; i++) {
-        if (playlists[i].id != currentPlaylist.id) {
+        if (!(currentPage == "playlists" && playlists[i].id == currentPlaylist.id)) {
             var listItem = document.createElement('li');
             var listItemTitle = document.createElement('a');
             listItemTitle.innerHTML = playlists[i].name;
