@@ -59,22 +59,46 @@ document.querySelectorAll('#search form')[0].addEventListener('submit', function
 //////////////////////////////////////////////////
 var getRequest = function(file, callback) {
     var xhr = new XMLHttpRequest();
+    xhr.open('GET', file, true);
+    xhr.send(null);
     
     xhr.onreadystatechange = function() {
         if (xhr.readyState == XMLHttpRequest.DONE) {
-            callback(xhr.responseText);
+            if (callback && typeof(callback) === "function") {
+                callback(JSON.parse(xhr.responseText));
+            }
         }
     }
-    
-    xhr.open('GET', file, true);
-    xhr.send(null);
-};
+}
 
-var postRequest = function(url, data) {
+var postRequest = function(url, data, callback) {
     var xhr = new XMLHttpRequest();
     xhr.open("POST", url, true);
     xhr.setRequestHeader("Content-type", "application/json");    
     xhr.send(data);
+    
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState == XMLHttpRequest.DONE) {
+            if (callback && typeof(callback) === "function") {
+                callback(xhr.status, JSON.parse(xhr.responseText));
+            }
+        }
+    }
+}
+
+var deleteRequest = function(url, data, callback) {
+    var xhr = new XMLHttpRequest();
+    xhr.open("DELETE", url, true);
+    xhr.setRequestHeader("Content-type", "application/json");    
+    xhr.send(data);
+    
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState == XMLHttpRequest.DONE) {
+            if (callback && typeof(callback) === "function") {
+                callback(xhr.status, JSON.parse(xhr.responseText));
+            }
+        }
+    }
 }
 
 
@@ -97,13 +121,13 @@ window.addEventListener('popstate', function(event) {
 });
 
 var loadPlaylists = function(responseText) {    
-    playlists = JSON.parse(responseText).playlists;
+    playlists = responseText.playlists;
     playlistsLoaded = true;
     attemptRunApplication();
 }
 
 var loadSongs = function(responseText) {    
-    songs = JSON.parse(responseText).songs;
+    songs = responseText.songs;
     songsLoaded = true;
     attemptRunApplication();
 }
@@ -246,28 +270,35 @@ var createNewPlaylist = function(event){
 
     var form = document.querySelectorAll('#new-playlist-form form')[0];
     var newPlaylistName = form.querySelector('input[name="playlist-name"]').value;
-    var newPlaylist = {id: playlists.length, name: newPlaylistName, songs: [] }        
-    playlists.push(newPlaylist);
-
-    var list = document.querySelectorAll('#playlists ul')[0];
-    createPlaylist(newPlaylist, list);
     
-    hideForm();
+    var data = JSON.stringify({'name' : newPlaylistName}, null, 4);
+    postRequest('/api/playlists', data, function(status, response){
+        if (status == 200) {
+            var newPlaylist = {id: response.id, name: response.name, songs: [] }
+            playlists.push(newPlaylist);
+            
+            var list = document.querySelectorAll('#playlists ul')[0];
+            createPlaylist(newPlaylist, list);
+        }
     
-    postRequest('/api/playlists', JSON.stringify({'playlistName': newPlaylistName}, null, 4));
+        hideForm();
+    });
 }
     
 var loadAddSongForm = function() {
     var list = document.querySelectorAll('#add-song-form ul')[0];
     list.innerHTML = '';
+    
     for (var i = 0; i < playlists.length; i++) {
-        var listItem = document.createElement('li');
-        var listItemTitle = document.createElement('a');
-        listItemTitle.innerHTML = playlists[i].name;
-        listItem.appendChild(listItemTitle);
-        list.appendChild(listItem);
-
-        listItem.addEventListener('click', addToPlaylist(playlists[i]));
+        if (playlists[i].id != currentPlaylist.id) {
+            var listItem = document.createElement('li');
+            var listItemTitle = document.createElement('a');
+            listItemTitle.innerHTML = playlists[i].name;
+            listItem.appendChild(listItemTitle);
+            list.appendChild(listItem);
+    
+            listItem.addEventListener('click', addToPlaylist(playlists[i]));
+        }
     }
     
     displayForm('add-song-form');
@@ -277,7 +308,8 @@ var addToPlaylist = function(selectedPlaylist) {
     return function() {
         selectedPlaylist.songs.push(currentSong.id);
 
-        postRequest('/api/playlists', JSON.stringify({'playlists':playlists}, null, '\t'));
+        var data = JSON.stringify({'song' : currentSong.id}, null, '\t');
+        postRequest('/api/playlists/'+selectedPlaylist.id, data);
         
         if (currentPage == "playlists" && currentPlaylist === selectedPlaylist) {
             loadPlaylist(selectedPlaylist);
@@ -287,6 +319,17 @@ var addToPlaylist = function(selectedPlaylist) {
     }
 }
 
+var removeFromPlaylist = function(selectedPlaylist) {
+    var index = selectedPlaylist.songs.indexOf(currentSong.id);
+    selectedPlaylist.songs.splice(index, 1);
+    
+    var data = JSON.stringify({'song' : currentSong.id}, null, '\t');
+    deleteRequest('/api/playlists/'+selectedPlaylist.id, data);
+
+    if (currentPage == "playlists" && currentPlaylist === selectedPlaylist) {
+        loadPlaylist(selectedPlaylist);
+    }
+}
 
 //////////////////////////////////////////////////
 // Navigation Controller
@@ -311,10 +354,6 @@ var navigateToPlaylist = function(playlist) {
 var loadPlaylist = function(playlist) {
     var list = document.querySelectorAll('#playlists ul.playlist-song-list')[0];
     list.innerHTML = '';
-        
-    var playlistSongs = songs.filter(function(item){
-        return playlist.songs.indexOf(item.id) > -1
-    });
 
     for (var i = 0; i < playlist.songs.length; i++) {
         var song = songs.filter(function(s){
@@ -435,6 +474,7 @@ var createSong = function(song, list) {
     rowContainer.classList.add('row-container');
     newSongLi.appendChild(rowContainer);
 
+    // SONG INFORMATION
     var artworkItem = document.createElement('div');
     artworkItem.classList.add('row-artwork');
 
@@ -446,18 +486,31 @@ var createSong = function(song, list) {
     listSubtitle.classList.add('row-subtitle');
     listSubtitle.innerHTML = song.artist;
 
+    // CONTROLS
+    var symbolPlay = document.createElement('span');
+    symbolPlay.classList.add('glyphicon', 'glyphicon-play');
+
     var symbolAdd = document.createElement('span');
     symbolAdd.classList.add('glyphicon', 'glyphicon-plus-sign');
-
     symbolAdd.addEventListener('click', function(){
         currentSong = song;
         loadAddSongForm();
     }, false);
+    
+    var symbolDelete = document.createElement('span');
+    symbolDelete.classList.add('glyphicon', 'glyphicon-remove');
+    symbolDelete.addEventListener('click', function(){
+        currentSong = song;
+        removeFromPlaylist(currentPlaylist);
+    }, false);
 
-    var symbolPlay = document.createElement('span');
-    symbolPlay.classList.add('glyphicon', 'glyphicon-play');
-
+    // CONFIGURE LIST ITEM
     rowContainer.appendChild(artworkItem);
+    
+    if (list.classList.contains('playlist-song-list')) {
+        rowContainer.appendChild(symbolDelete);
+    }
+    
     rowContainer.appendChild(symbolAdd);
     rowContainer.appendChild(symbolPlay);
     rowContainer.appendChild(listTitle);
@@ -465,4 +518,3 @@ var createSong = function(song, list) {
 
     list.appendChild(newSongLi);
 }
-

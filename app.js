@@ -55,7 +55,7 @@ var loadPage = function(request, response) {
 //////////////////////////////////////////////////
 // API
 //////////////////////////////////////////////////
-app.get('/api/songs', function(request, response) {
+app.get('/api/songs/', function(request, response) {
     response.statusCode = 200;
     response.setHeader('Content-Type', 'text/json');
     response.setHeader('Cache-Control', 'max-age=1800');
@@ -67,18 +67,18 @@ app.get('/api/songs', function(request, response) {
     });
 });
 
-app.get('/api/playlists', function(request, response) {
+app.get('/api/playlists/', function(request, response) {
     response.statusCode = 200;
     response.setHeader('Content-Type', 'text/json');
     response.setHeader('Cache-Control', 'max-age=1800');
-    
-    // TODO: More elegant solution for converting list of songs into array of IDs?
+
     models.Playlist.findAll({
         attributes: ['id', 'name'],
         include: [{
             model: models.Song,
             attributes: ['id'],
             where: { playlist_id: Sequelize.col('playlist.id') },
+            required: false,
             through: {
                 attributes: []
             }
@@ -96,44 +96,57 @@ app.get('/api/playlists', function(request, response) {
     });
 });
 
-app.post('/api/playlists', function(request, response) {
+// Add new playlist
+app.post('/api/playlists/', function(request, response) {
     var data = request.body;
+    var playlist_name = data.name;
     
-    if (data.playlistName) {
-        console.log(data.playlistName);
-
-        models.Playlist.create({
-            name: data.playlistName
-        }).then(function(playlistInstance){
-            response.statusCode = 200;
-            response.setHeader('Content-Type', 'text/plain');
-            response.end('Updated file successfully: ' + playlistInstance);
-        }).catch(function(err) {
-            response.statusCode = 400;
-            response.setHeader('Content-Type', 'text/plain');
-            response.end('Error updating file: ' + err);
-        });
-    }    
-    else if (data.playlistID && data.songID) {
-        console.log(data.playlistID + " - " + data.songID);
-    }
-    else {
-        response.end('Updated file successfully.');
-    }
-            
-/*
-    fs.writeFile('playlists.json', data, function(error) {
-        if (error) {
-            response.statusCode = 400;
-            response.setHeader('Content-Type', 'text/plain');
-            response.end('Error updating file.');
+    models.Playlist.create({
+        name: playlist_name
+    }).then(function(playlistInstance) {
+        var data = {
+            'id' : playlistInstance.id,
+            'name' : playlist_name
         }
-
-        response.statusCode = 200;
-        response.setHeader('Content-Type', 'text/plain');
-        response.end('Updated file successfully.');
+                
+        response.status(200).end(JSON.stringify(data, null, 4)); 
+    }).catch(function(err) {
+        console.log(err);
     });
-*/
+});
+
+// Add songs to playlist
+app.post('/api/playlists/:id/', function(request, response) {
+    var data = request.body;
+    var song_id = data.song;
+    
+    models.Playlist.findById(request.params.id).then(function(playlist) {
+        models.Song.findById(song_id).then(function(song) {            
+            playlist.addSong(song).then(function() {
+                response.status(200).end();
+            }).catch(function(err) {
+                var data = {'error': err}
+                response.status(422).end(JSON.stringify(data));
+            });
+        });
+    });
+});
+
+// Delete songs from playlist
+app.delete('/api/playlists/:id/', function(request, response) {
+    var data = request.body;
+    var song_id = data.song;
+    
+    models.Playlist.findById(request.params.id).then(function(playlist) {
+        models.Song.findById(song_id).then(function(song) {            
+            playlist.removeSong(song).then(function() {
+                response.status(200).end();
+            }).catch(function(err) {
+                var data = {'error': err}
+                response.status(422).end(JSON.stringify(data));
+            });
+        });
+    });
 });
 
 
