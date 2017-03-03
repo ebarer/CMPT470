@@ -57,9 +57,9 @@ document.querySelectorAll('#search form')[0].addEventListener('submit', function
 //////////////////////////////////////////////////
 // POST and GET functions
 //////////////////////////////////////////////////
-var getRequest = function(file, callback) {
+var getRequest = function(url, callback) {
     var xhr = new XMLHttpRequest();
-    xhr.open('GET', file, true);
+    xhr.open('GET', url, true);
     xhr.send(null);
     
     xhr.onreadystatechange = function() {
@@ -289,17 +289,21 @@ var loadAddSongForm = function() {
     var list = document.querySelectorAll('#add-song-form ul')[0];
     list.innerHTML = '';
     
-    for (var i = 0; i < playlists.length; i++) {
-        if (!(currentPage == "playlists" && playlists[i].id == currentPlaylist.id)) {
-            var listItem = document.createElement('li');
-            var listItemTitle = document.createElement('a');
-            listItemTitle.innerHTML = playlists[i].name;
-            listItem.appendChild(listItemTitle);
-            list.appendChild(listItem);
-    
-            listItem.addEventListener('click', addToPlaylist(playlists[i]));
+    getRequest('/api/songs/'+currentSong.id, function(response) {
+        var songPlaylists = response.song.playlists;
+
+        for (var i = 0; i < playlists.length; i++) {
+            if (!songPlaylists.includes(playlists[i].id)) {
+                var listItem = document.createElement('li');
+                var listItemTitle = document.createElement('a');
+                listItemTitle.innerHTML = playlists[i].name;
+                listItem.appendChild(listItemTitle);
+                list.appendChild(listItem);
+        
+                listItem.addEventListener('click', addToPlaylist(playlists[i]));
+            }
         }
-    }
+    });
     
     displayForm('add-song-form');
 }

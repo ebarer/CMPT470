@@ -8,8 +8,8 @@ var fs = require('fs');
 var path = require('path');
 var express = require('express');
 var bodyParser = require('body-parser');
-var Sequelize = require("sequelize");
 
+var Sequelize = require("sequelize");
 var models = require('./models');
 
 
@@ -55,23 +55,43 @@ var loadPage = function(request, response) {
 //////////////////////////////////////////////////
 // API
 //////////////////////////////////////////////////
-app.get('/api/songs/', function(request, response) {
-    response.statusCode = 200;
-    response.setHeader('Content-Type', 'text/json');
-    response.setHeader('Cache-Control', 'max-age=1800');
-    
+// Get all songs
+app.get('/api/songs/', function(request, response) {    
     models.Song.findAll({
         attributes: { exclude: ['createdAt', 'updatedAt'] },
     }).then(function(songs) {
-        response.end(JSON.stringify({'songs' : songs}, null, 4));
+        response.status(200).end(JSON.stringify({'songs' : songs}, null, 4));
     });
 });
 
-app.get('/api/playlists/', function(request, response) {
-    response.statusCode = 200;
-    response.setHeader('Content-Type', 'text/json');
-    response.setHeader('Cache-Control', 'max-age=1800');
+// Get a song
+app.get('/api/songs/:id/', function(request, response) {    
+    models.Song.findById(request.params.id, {
+        include: [{
+            model: models.Playlist,
+            attributes: ['id'],
+            where: { song_id: Sequelize.col('song.id') },
+            required: false,
+            through: {
+                attributes: []
+            }
+        }]
+    }).then(function(songInstance) {
+        song = {
+                'id': songInstance.id,
+                'title': songInstance.title,
+                'album': songInstance.album,
+                'artist': songInstance.artist,
+                'duration': songInstance.duration,
+                'playlists': songInstance.Playlists.map(function(playlist) { return playlist.id })
+        };
+        
+        response.status(200).end(JSON.stringify({'song' : song}, null, 4));
+    });
+});
 
+// Get all playlists
+app.get('/api/playlists/', function(request, response) {
     models.Playlist.findAll({
         attributes: ['id', 'name'],
         include: [{
@@ -92,7 +112,7 @@ app.get('/api/playlists/', function(request, response) {
             }
         });
         
-        response.end(JSON.stringify({'playlists' : playlists}, null, 4));
+        response.status(200).end(JSON.stringify({'playlists' : playlists}, null, 4));
     });
 });
 
