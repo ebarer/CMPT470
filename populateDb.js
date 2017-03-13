@@ -34,4 +34,36 @@ models.sequelize.sync({force: true}).then(function() {
             });
         });
     });
+    
+    users = [
+        {
+            username: 'Foo',
+            password: '123'
+        }, 
+        {
+            username: 'Bar',
+            password: '456'
+        }
+    ];
+    
+    users.forEach(function(user) {
+        models.User.create({
+            username: user.username,
+            password: user.password
+        }).then(function(userInstance) {
+            switch(user.username) {
+                case 'Foo':
+                    userInstance.addPlaylists([1,3]);
+                    break;
+                case 'Bar':
+                    userInstance.addPlaylist([2,3]);
+                    break;
+                default: break;
+            }
+            
+            console.log(userInstance);
+        }).catch(function(err) {
+            console.log(err);
+        })
+    });
 });
