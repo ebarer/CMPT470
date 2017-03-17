@@ -1,5 +1,6 @@
 var fs = require('fs');
 var models = require('./models');
+var bcrypt = require('bcrypt');
 
 models.sequelize.sync({force: true}).then(function() {
     console.log("Populating DB...");
@@ -47,23 +48,24 @@ models.sequelize.sync({force: true}).then(function() {
     ];
     
     users.forEach(function(user) {
-        models.User.create({
-            username: user.username,
-            password: user.password
-        }).then(function(userInstance) {
-            switch(user.username) {
-                case 'Foo':
-                    userInstance.addPlaylists([1,3]);
-                    break;
-                case 'Bar':
-                    userInstance.addPlaylist([2,3]);
-                    break;
-                default: break;
-            }
-            
-            console.log(userInstance);
-        }).catch(function(err) {
-            console.log(err);
-        })
+        // Use 10 rounds when generating a salt
+        bcrypt.hash(user.password, 10, function(err, hash) {                    
+            models.User.create({
+                username: user.username,
+                password: hash
+            }).then(function(userInstance) {
+                switch(user.username) {
+                    case 'Foo':
+                        userInstance.addPlaylists([1,3]);
+                        break;
+                    case 'Bar':
+                        userInstance.addPlaylist([2,3]);
+                        break;
+                    default: break;
+                }
+            }).catch(function(err) {
+                console.log(err);
+            })
+        });
     });
 });

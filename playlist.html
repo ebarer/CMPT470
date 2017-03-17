@@ -3,7 +3,7 @@
 
 <html lang="en">
     <head>
-        <title>Exercise 3</title>
+        <title>Music App</title>
 
         <meta charset="UTF-8">
     	<meta name="viewport" content="initial-scale = 1.0, maximum-scale = 1.0">
@@ -68,6 +68,10 @@
                     <div class="navigation-view list second" id="playlist-view">
                         <div class="list-header">
                             <h1 class="view-title" id="playlist-name">Choose playlist</h1>
+                            <button class="list_button" id="add-user">
+                                <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+                                User
+                            </button>
                         </div>
             
                         <ul class="playlist-song-list"></ul>
@@ -87,6 +91,10 @@
             </div>
         </div>
         
+        <a id="user-logout" href="/logout">
+            <span class="glyphicon glyphicon-log-out" aria-hidden="true"></span>        
+        </a>
+        
         <div class="overlay">
             <div class="overlay-form" id="new-playlist-form">
                 <div class="form-header">
@@ -102,6 +110,14 @@
             <div class="overlay-form" id="add-song-form">
                 <div class="form-header">
                     <h2>Choose playlist</h2>
+                    <span class="glyphicon glyphicon-remove form-close" aria-hidden="true"></span>
+                </div>
+                <ul></ul>
+            </div>
+            
+            <div class="overlay-form" id="add-user-form">
+                <div class="form-header">
+                    <h2>Choose user</h2>
                     <span class="glyphicon glyphicon-remove form-close" aria-hidden="true"></span>
                 </div>
                 <ul></ul>

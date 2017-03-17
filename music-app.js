@@ -10,6 +10,7 @@ var songs = [];
 var playlists = [];
 
 var startPage = 'playlists';
+var currentUser;
 var currentPage;
 var currentPlaylist;
 var currentSong;
@@ -46,6 +47,9 @@ document.getElementById('sort-title').addEventListener('click', function(){
 
 document.getElementById('add-playlist').addEventListener('click', function(){
     loadNewPlaylistForm();
+});
+document.getElementById('add-user').addEventListener('click', function(){
+    loadAddUserForm();
 });
     
 document.getElementById('search').addEventListener('input', searchMusic, false);
@@ -106,6 +110,7 @@ var deleteRequest = function(url, data, callback) {
 // Load data from JSON
 // Base app methods
 //////////////////////////////////////////////////
+// Load data with API calls on page load
 window.addEventListener('DOMContentLoaded', function(){
     var path = window.location.pathname;
     if (path !== '') {
@@ -114,8 +119,10 @@ window.addEventListener('DOMContentLoaded', function(){
     
     getRequest('api/playlists', loadPlaylists);
     getRequest('api/songs', loadSongs);
+    getRequest('api/users/current', getCurrentUser);
 });
 
+// Handle history states
 window.addEventListener('popstate', function(event) {
     loadPage(event.state);
 });
@@ -132,8 +139,12 @@ var loadSongs = function(responseText) {
     attemptRunApplication();
 }
 
+var getCurrentUser = function(responseText) {
+    currentUser = responseText.user;
+}
+
 var attemptRunApplication = function() {
-    if (songsLoaded == true && playlistsLoaded == true) {
+    if (songsLoaded == true && playlistsLoaded == true && currentUser !== undefined) {
         document.getElementById('applicationLoader').classList.remove('active');
         loadPage(startPage);
     }
@@ -335,6 +346,37 @@ var removeFromPlaylist = function(selectedPlaylist) {
     }
 }
 
+var loadAddUserForm = function() {
+    var list = document.querySelectorAll('#add-user-form ul')[0];
+    list.innerHTML = '';
+
+    getRequest('/api/users/', function(response) {
+        var users = response.users;
+        
+        users.forEach(function(user) {
+            if (user.id !== currentUser) {
+                var listItem = document.createElement('li');
+                var listItemTitle = document.createElement('a');
+                listItemTitle.innerHTML = user.username;
+                listItem.appendChild(listItemTitle);
+                list.appendChild(listItem);
+    
+                listItem.addEventListener('click', addUser(user)); 
+            }
+        });
+    });
+    
+    displayForm('add-user-form');
+}
+
+var addUser = function(selectedUser) {
+    return function() {
+        var data = JSON.stringify({'user' : selectedUser.id}, null, '\t');
+        postRequest('/api/playlists/'+currentPlaylist.id+'/users/', data);        
+        hideForm();
+    }
+}
+
 //////////////////////////////////////////////////
 // Navigation Controller
 //////////////////////////////////////////////////
@@ -355,7 +397,7 @@ var navigateToPlaylist = function(playlist) {
     }
 }
 
-var loadPlaylist = function(playlist) {
+var loadPlaylist = function(playlist) {    
     var list = document.querySelectorAll('#playlists ul.playlist-song-list')[0];
     list.innerHTML = '';
 
