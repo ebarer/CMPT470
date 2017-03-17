@@ -1,9 +1,10 @@
 /* Elliot Barer, ebarer [at] mac [dot] com, 2017-01-16 */
 
-
 //////////////////////////////////////////////////
 // Global Variables
 //////////////////////////////////////////////////
+var socket = io('/');       // Real-Time WebSocket
+
 var songsLoaded = false;
 var playlistsLoaded = false;
 var songs = [];
@@ -319,12 +320,18 @@ var loadAddSongForm = function() {
     displayForm('add-song-form');
 }
 
+// TODO: Merge duplicate code?
 var addToPlaylist = function(selectedPlaylist) {
     return function() {
         selectedPlaylist.songs.push(currentSong.id);
 
-        var data = JSON.stringify({'song' : currentSong.id}, null, '\t');
-        postRequest('/api/playlists/'+selectedPlaylist.id, data);
+        var data = {
+            'song' : currentSong.id,
+            'playlist' : selectedPlaylist.id
+        };
+        
+        //postRequest('/api/playlists/'+selectedPlaylist.id, data);
+        socket.emit('addToPlaylist', JSON.stringify(data, null, '\t'));
         
         if (currentPage == "playlists" && currentPlaylist === selectedPlaylist) {
             loadPlaylist(selectedPlaylist);
@@ -334,17 +341,56 @@ var addToPlaylist = function(selectedPlaylist) {
     }
 }
 
+socket.on('addSongToPlaylist', function(response) {
+    var data = JSON.parse(response);
+    var playlist_id = data.playlist;
+    var song_id = data.song;
+    
+    var playlist = playlists.filter(function(p){
+        if (p.id === playlist_id) return p;
+    })[0];
+    
+    playlist.songs.push(song_id);
+    
+    if (currentPage == "playlists" && currentPlaylist === playlist) {
+        loadPlaylist(playlist);
+    }
+});
+
+// TODO: Merge duplicate code?
 var removeFromPlaylist = function(selectedPlaylist) {
     var index = selectedPlaylist.songs.indexOf(currentSong.id);
     selectedPlaylist.songs.splice(index, 1);
     
-    var data = JSON.stringify({'song' : currentSong.id}, null, '\t');
-    deleteRequest('/api/playlists/'+selectedPlaylist.id, data);
+    var data = {
+        'song' : currentSong.id,
+        'playlist' : selectedPlaylist.id
+    };
+    
+    //deleteRequest('/api/playlists/'+selectedPlaylist.id, data);
+    socket.emit('removeFromPlaylist', JSON.stringify(data, null, '\t'));
 
     if (currentPage == "playlists" && currentPlaylist === selectedPlaylist) {
         loadPlaylist(selectedPlaylist);
     }
 }
+
+socket.on('removeSongFromPlaylist', function(response) {
+    var data = JSON.parse(response);
+    var playlist_id = data.playlist;
+    var song_id = data.song;
+    
+    var playlist = playlists.filter(function(p){
+        if (p.id === playlist_id) return p;
+    })[0];
+    
+    var index = playlist.songs.indexOf(song_id);
+    playlist.songs.splice(index, 1);
+    
+    if (currentPage == "playlists" && currentPlaylist === playlist) {
+        loadPlaylist(playlist);
+    }
+});
 
 var loadAddUserForm = function() {
     var list = document.querySelectorAll('#add-user-form ul')[0];
@@ -377,6 +423,7 @@ var addUser = function(selectedUser) {
     }
 }
 
+
 //////////////////////////////////////////////////
 // Navigation Controller
 //////////////////////////////////////////////////
@@ -408,7 +455,6 @@ var loadPlaylist = function(playlist) {
         createSong(song[0], list);
     }
 }
-
 
 //////////////////////////////////////////////////
 // Sorting
@@ -564,3 +610,4 @@ var createSong = function(song, list) {
 
     list.appendChild(newSongLi);
 }
+

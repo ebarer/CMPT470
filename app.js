@@ -9,11 +9,13 @@ var path = require('path');
 var express = require('express');
 var bodyParser = require('body-parser');
 var cookieParser = require('cookie-parser');
+var cookieParserSocket = require('socket.io-cookie-parser');
 var bcrypt = require('bcrypt');
 
 var Sequelize = require("sequelize");
 var models = require('./models');
 
+var app = express();
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
 
@@ -31,47 +33,85 @@ var generateKey = function() {
 
 
 //////////////////////////////////////////////////
-// CREATE EXPRESS SERVER
+// MIDDLE-LAYER
 //////////////////////////////////////////////////
-var app = express();
+var clearCookie = function(response) {
+    response.clearCookie('sessionKey');
+    response.cookie("sessionKey", "", { expires: new Date() });
+}
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+
 app.use(cookieParser());
-app.use(function(request, response, next) {    
-    var cookies = request.cookies;
-    var sessionKey = cookies['sessionKey'];
+app.use(function(request, response, next) {
+    var sessionKey = request.cookies['sessionKey'];
     
-    models.Session.find({
-        where: { sessionKey: sessionKey }
-    }).then(function(sessionInstance){
-        if (sessionInstance) {
-            models.User.find({
-                where: { id: sessionInstance.sessionUser }
-            }).then(function(userInstance) {
-                userInstance.getPlaylists().then(function(playlists){
-                    playlists = playlists.map(function(playlist){
-                        return playlist.id
-                    });
-                    
-                    request.session = sessionInstance.sessionUser
-                    request.playlists = playlists;
-                    next();
-                });
-            });
-        } else {
-            response.clearCookie('sessionKey');
-            next();
-        }
-    });
+    authorize(sessionKey, function(user, playlists){
+        request.session = user;
+        request.playlists = playlists;
+        next();
+    }, function(){
+        clearCookie(response);
+        next();
+    })
 });
+
+io.use(cookieParserSocket());
+io.use(function(socket, next) {
+    var sessionKey = socket.request.cookies['sessionKey'];
+    
+    authorize(sessionKey, function(user, playlists){
+        socket.session = user;
+        socket.playlists = playlists;
+        next();
+    }, function(){
+        next();
+    })
+});
+
+var authorize = function(sessionKey, success, failure) {
+    if (sessionKey !== undefined) {
+        models.Session.find({
+            where: { sessionKey: sessionKey }
+        }).then(function(sessionInstance){
+            if (sessionInstance) {
+                models.User.find({
+                    where: { id: sessionInstance.sessionUser }
+                }).then(function(userInstance) {
+                    userInstance.getPlaylists().then(function(playlists){
+                        playlists = playlists.map(function(playlist){
+                            return playlist.id
+                        });
+
+                        if (success && typeof(success) === "function") {
+                            success(sessionInstance.sessionUser, playlists);
+                        }
+                    });
+                });
+            } else {
+                if (failure && typeof(failure) === "function") {
+                    failure();
+                }
+            }
+        });
+    } else {
+        if (failure && typeof(failure) === "function") {
+            failure();
+        }
+    }
+}
 
 
 //////////////////////////////////////////////////
 // PAGES
 //////////////////////////////////////////////////
 app.get('/login', function(request, response) {
-    loadPage(request, response, 'login.html');
+    response.status(200);
+    response.setHeader('Content-Type', 'text/html');
+    
+    var fPath = path.join(__dirname, 'login.html');
+    fs.createReadStream(fPath).pipe(response);
 });
 
 app.post('/login', function(request, response) {
@@ -90,7 +130,9 @@ app.post('/login', function(request, response) {
                         sessionKey: sessKey
                     }).then(function(sessionInstance) {
                         // 2. Respond to request with a Set-Cookie:
-                        response.cookie('sessionKey', sessKey);                
+                        // Set expiry to ~10 years in the future
+                        var expiry = new Date((new Date()).getTime() + (3000 * 86400000))
+                        response.cookie("sessionKey", sessKey, { expires: expiry });
                         response.redirect(301, 'http://localhost:3000/playlists');
                     }).catch(function(err) {
                         console.log(err);
@@ -100,54 +142,42 @@ app.post('/login', function(request, response) {
                 }
             });
         } else {
-            response.clearCookie('sessionKey').redirect(401, 'http://localhost:3000/login');
+            response.redirect(401, 'http://localhost:3000/login');
         }
     });
 });
 
 app.get('/logout', function(request, response) {
-    response.clearCookie('sessionKey').redirect(301, 'http://localhost:3000/login');
+    clearCookie(response);
+    response.redirect(301, 'http://localhost:3000/login');
 })
 
 app.get('/playlists', function(request, response) {
-    if (request.session) {
-        loadPage(request, response, 'playlist.html');
-    } else {
-        response.redirect(301, 'http://localhost:3000/login');
-    }
+    loadPage(request, response, 'playlist.html');
 });
 
 app.get('/library', function(request, response) {
-    if (request.session) {
-        loadPage(request, response, 'playlist.html');
-    } else {
-        response.redirect(301, 'http://localhost:3000/login');
-    }
+    loadPage(request, response, 'playlist.html');
 });
 
 app.get('/search', function(request, response) {
-    if (request.session) {
-        loadPage(request, response, 'playlist.html');
-    } else {
-        response.redirect(301, 'http://localhost:3000/login');
-    }
+    loadPage(request, response, 'playlist.html');
 });
 
 app.get('/', function(request, response) {
+    response.redirect(301, 'http://localhost:3000/playlists');
+});
+
+var loadPage = function(request, response, page) {    
     if (request.session) {
-        response.redirect(301, 'http://localhost:3000/playlists');
+        response.status(200);
+        response.setHeader('Content-Type', 'text/html');
+        
+        var fPath = path.join(__dirname, page);
+        fs.createReadStream(fPath).pipe(response);
     } else {
         response.redirect(301, 'http://localhost:3000/login');
     }
-});
-
-var loadPage = function(request, response, page) {
-    response.status(200);
-    response.setHeader('Content-Type', 'text/html');
-    response.setHeader('Cache-Control', 'max-age=1800');
-    
-    var fPath = path.join(__dirname, page);
-    fs.createReadStream(fPath).pipe(response);
 }
 
 
@@ -333,6 +363,56 @@ app.get('/api/users/current', function(request, response) {
 
 
 //////////////////////////////////////////////////
+// REAL TIME
+//////////////////////////////////////////////////
+io.on('connection', function(socket) {
+    socket.on('addToPlaylist', function(data_j) {
+        var data = JSON.parse(data_j);
+        var song_id = data.song;
+        var playlist_id = data.playlist;
+
+        if (socket.playlists.indexOf(playlist_id) !== -1) {
+            models.Playlist.findById(playlist_id).then(function(playlist) {
+                models.Song.findById(song_id).then(function(song) {                
+                    playlist.addSong(song).then(function() {
+                        var response = {
+                            'playlist' : playlist_id,
+                            'song' : song_id
+                        }
+                        
+                        // Broadcast to all nodes except sender
+                        socket.broadcast.emit('addSongToPlaylist', JSON.stringify(response, null, '\t'))
+                    });
+                });
+            });
+        }
+    });
+    
+    socket.on('removeFromPlaylist', function(data_j) {
+        var data = JSON.parse(data_j);
+        var song_id = data.song;
+        var playlist_id = data.playlist;
+        
+        if (socket.playlists.indexOf(playlist_id) !== -1) {
+            models.Playlist.findById(playlist_id).then(function(playlist) {
+                models.Song.findById(song_id).then(function(song) {                
+                    playlist.removeSong(song).then(function() {
+                        var response = {
+                            'playlist' : playlist_id,
+                            'song' : song_id
+                        }
+                        
+                        // Broadcast to all nodes except sender
+                        socket.broadcast.emit('removeSongFromPlaylist', JSON.stringify(response, null, '\t'))
+                    });
+                });
+            });
+        }
+    });
+});
+
+
+//////////////////////////////////////////////////
 // JAVASCRIPT
 //////////////////////////////////////////////////
 app.get('/music-app.js', function(request, response) {    
@@ -369,68 +449,11 @@ app.get('*', function(request, response) {
 
 
 //////////////////////////////////////////////////
-// REAL TIME
-//////////////////////////////////////////////////
-
-/*
-var getSongs = function(callback) {
-    models.Song.findAll()
-        .then(function(songs) {
-            var songs = {
-                'songs': songs.map(function(song) {
-                    return song.get({plain: true})
-                })
-            }
-            callback(songs);
-        });
-};
-
-io.on('connection', function(socket) {
-    console.log('A user connected!');
-
-    // When a user requests songs for a playlist, send it.
-    socket.on('getSongsForPlaylist', function(playlistId) {
-        console.log('Got request for playlist ' + playlistId);
-        getSongs(function(songData) {
-            socket.emit('receiveSongsForPlaylist', JSON.stringify(songData));
-        })
-    });
-
-    // When a user requests songs for a playlist, send it.
-    socket.on('addNewSongToPlaylist', function(data) {
-        var playlistId = data.playlist;
-        var song = data.song
-
-        models.Song.create({
-            artist: song.artist,
-            title: song.title,
-            album: song.album,
-            duration: song.duration,
-        });
-        
-        getSongs(function(songData) {
-            socket.broadcast.emit('receiveSongsForPlaylist', JSON.stringify(songData));
-            socket.emit('receiveSongsForPlaylist', JSON.stringify(songData));
-
-            // An improvement we could (should) make: only send
-            // the new song to the rest of the clients listening.
-        })
-    });
-});
-*/
-
-
-//////////////////////////////////////////////////
 // START SERVER (port: 3000)
 //////////////////////////////////////////////////
-app.listen(3000, function() {
-    console.log('Amazing music app server listening on port 3000!')
-});
 
-/*
 models.sequelize.sync().then(function() {
-    server.listen(3000, function () {
+    server.listen(3000, function() {
         console.log('Amazing music app server listening on port 3000!')
     });
 });
-*/

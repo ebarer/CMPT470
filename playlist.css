@@ -233,7 +233,7 @@ body.preventScroll {
     /* ROWS */
     .list ul {
         clear: both;
-        margin: 0;
+        margin: 0 0 55px;
     }
 
     .list li.row {
@@ -440,7 +440,7 @@ body.preventScroll {
     background: #E8E0F4;
     color: #936AC7;
     margin-top: 5px;
-    padding: 5px 10px;
+    padding: 10px 20px;
     border-radius: 3px;
     border: none;
     float: right;
@@ -456,8 +456,8 @@ a#user-logout {
     height: 56px;
     width: 56px;
     position: absolute;
-    bottom: 30px;
-    right: 30px;
+    bottom: 20px;
+    right: 20px;
     border: none;
     border-radius: 45px;
     box-shadow: 0 2px 3px rgba(0, 0, 0, 0.3);
